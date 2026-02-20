@@ -165,7 +165,7 @@ export default function DiagnosisForm({ questions, userId, profile, isGuest = fa
             // 2. Create Profile
             const { error: profileError } = await supabase
                 .from('profiles')
-                .insert({
+                .upsert({
                     id: authData.user.id,
                     email: profile.email,
                     user_name: profile.user_name,

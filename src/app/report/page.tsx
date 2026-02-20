@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import GrowthAnalysis from '@/components/report/GrowthAnalysis'
 import { History } from 'lucide-react'
 import { getDiagnosisQuestions } from '@/lib/diagnosis-logic'
+import ConsultantBanner from '@/components/report/ConsultantBanner'
 
 export default async function ReportPage({ searchParams }: { searchParams: { id?: string } }) {
     const supabase = await createClient()
@@ -277,6 +278,8 @@ export default async function ReportPage({ searchParams }: { searchParams: { id?
                         </CardContent>
                     </Card>
                 </div>
+
+                <ConsultantBanner />
             </main>
         </div>
     )
