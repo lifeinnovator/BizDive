@@ -54,14 +54,14 @@ export default async function DashboardPage() {
                     <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl"></div>
 
                     <div className="relative z-10 max-w-3xl">
-                        <Badge className="mb-4 bg-white/20 hover:bg-white/30 text-white border-none px-3 py-1">BizDive 2.0</Badge>
+                        <Badge className="mb-4 bg-white/20 hover:bg-white/30 text-white border-none px-3 py-1">BizDive</Badge>
                         <h2 className="text-4xl font-extrabold tracking-tight mb-4 leading-tight">
                             비즈니스 성장의 여정, <br className="hidden sm:block" />
                             <span className="text-purple-200">데이터로 시작하세요.</span>
                         </h2>
                         <p className="text-lg text-indigo-100 max-w-2xl mb-10 leading-relaxed word-keep-all break-keep">
-                            7가지 핵심 차원을 통해 기업의 현재 상태를 입체적으로 분석하고, <br className="hidden sm:block" />
-                            다음 단계로 나아가기 위한 구체적인 전략을 발견할 수 있습니다.
+                            7가지 핵심 차원을 통해 기업의 현재 상태를 입체적으로 분석하고, 다음 단계로 나아가기 위한 <br className="hidden sm:block" />
+                            구체적인 전략을 발견할 수 있습니다.
                         </p>
                         <div className="flex flex-wrap gap-4">
                             <Link href="/diagnosis">
