@@ -78,22 +78,22 @@ export default function LoginPage() {
                     <img
                         src="/og-image.png"
                         alt="BizDive Logo"
-                        className="w-[200px] mx-auto mb-4"
+                        className="w-[240px] mx-auto mb-2"
                         onError={(e) => (e.currentTarget.style.display = 'none')}
                     />
                     <div className="text-center">
-                        <CardTitle className="text-2xl font-bold text-foreground">
-                            {mode === 'guest' ? '기업경영 자가진단 시작' : '로그인'}
+                        <CardTitle className="text-xl font-bold text-foreground">
+                            {mode === 'guest' ? '기업경영 자가진단 시작' : '7D 기업경영 심층자가진단'}
                         </CardTitle>
-                        <CardDescription className="mt-2 text-sm text-muted-foreground">
+                        <CardDescription className="mt-1 text-sm text-muted-foreground">
                             {mode === 'guest'
                                 ? '진단을 위해 기본 정보를 입력해주세요.'
-                                : '기존 계정으로 로그인하여 이력을 확인하세요.'}
+                                : '7차원 입체적 기업 분석을 시작합니다.'}
                         </CardDescription>
                     </div>
                 </CardHeader>
 
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-6 pt-4">
                     {mode === 'guest' ? (
                         /* GUEST START FORM */
                         <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
@@ -129,7 +129,7 @@ export default function LoginPage() {
 
                             <Button
                                 onClick={handleGuestStart}
-                                className="w-full bg-gradient-primary text-lg h-12 shadow-md hover:shadow-lg transition-all"
+                                className="w-full bg-gradient-primary text-primary-foreground text-lg h-12 shadow-soft hover:opacity-90 transition-opacity"
                             >
                                 무료 진단 시작하기
                                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -156,6 +156,7 @@ export default function LoginPage() {
                                     onChange={(e) => setEmail(e.target.value)}
                                     className="pl-10 h-11"
                                     onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                                    disabled={loading}
                                 />
                             </div>
                             <div className="relative">
@@ -167,11 +168,13 @@ export default function LoginPage() {
                                     onChange={(e) => setPassword(e.target.value)}
                                     className="pl-10 pr-10 h-11"
                                     onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                                    disabled={loading}
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
+                                    tabIndex={-1}
                                 >
                                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </button>
@@ -186,7 +189,7 @@ export default function LoginPage() {
 
                             <Button
                                 onClick={handleLogin}
-                                className="w-full bg-slate-800 hover:bg-slate-900 text-white h-12"
+                                className="w-full bg-gradient-primary text-primary-foreground shadow-soft hover:opacity-90 transition-opacity h-12"
                                 disabled={loading}
                             >
                                 {loading ? (
@@ -209,6 +212,6 @@ export default function LoginPage() {
                     )}
                 </CardContent>
             </Card>
-        </div>
+        </div >
     );
 }

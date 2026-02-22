@@ -71,27 +71,27 @@ export default function GrowthAnalysis({ current, previous, maxScores }: GrowthA
     const prevDate = new Date(previous.created_at).toLocaleDateString()
 
     return (
-        <div className="mb-0 bg-white rounded-2xl shadow-lg border border-indigo-50/50 overflow-hidden">
+        <div className="mb-0 bg-white rounded-2xl shadow-lg border border-indigo-50/50 overflow-hidden print:break-inside-avoid">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3 bg-white">
-                <div className="p-1.5 bg-indigo-50 rounded-lg text-indigo-600">
-                    <TrendingUp className="h-5 w-5" />
+            <div className="px-5 py-3 border-b border-gray-100 flex items-center gap-3 bg-white">
+                <div className="p-1 bg-indigo-50 rounded-lg text-indigo-600">
+                    <TrendingUp className="h-4 w-4" />
                 </div>
-                <h3 className="text-xl font-bold text-slate-800">성장 분석 (Growth Analysis)</h3>
+                <h3 className="text-[15px] font-bold text-slate-800">성장 분석 (Growth Analysis)</h3>
             </div>
 
-            <div className="p-6 space-y-4">
+            <div className="p-5 space-y-4">
                 {/* 1. Total Score Change Card */}
-                <div className={`rounded-xl p-6 border ${isPositive ? 'bg-emerald-50/60 border-emerald-100/50' : 'bg-rose-50/60 border-rose-100/50'}`}>
+                <div className={`rounded-xl px-5 py-4 border ${isPositive ? 'bg-emerald-50/60 border-emerald-100/50' : 'bg-rose-50/60 border-rose-100/50'}`}>
                     <div className="flex items-start gap-3">
-                        <div className="mt-1">
-                            {isPositive ? <TrendingUp className="w-6 h-6 text-emerald-600" /> : <TrendingDown className="w-6 h-6 text-rose-500" />}
+                        <div className="mt-0.5">
+                            {isPositive ? <TrendingUp className="w-5 h-5 text-emerald-600" /> : <TrendingDown className="w-5 h-5 text-rose-500" />}
                         </div>
                         <div>
-                            <h4 className="text-xl font-bold text-slate-800 mb-1">
+                            <h4 className="text-[15px] font-bold text-slate-800 mb-1 leading-snug">
                                 지난 진단 대비 <span className={isPositive ? 'text-emerald-600' : 'text-rose-600'}>{fmt(scoreDiff)}점</span> {isPositive ? '상승' : '하락'}
                             </h4>
-                            <p className="text-slate-500 font-medium text-sm">
+                            <p className="text-slate-500 font-medium text-[12px]">
                                 {improvedCount}개 영역 개선 · {declinedCount}개 영역 하락
                             </p>
                         </div>
@@ -100,42 +100,42 @@ export default function GrowthAnalysis({ current, previous, maxScores }: GrowthA
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* 2. Max Growth Area Card */}
-                    <div className="bg-white rounded-xl p-6 border border-emerald-100 shadow-sm relative overflow-hidden">
+                    <div className="bg-white rounded-xl p-4 sm:p-5 border border-emerald-100 shadow-sm relative overflow-hidden">
                         <div className="absolute -right-6 -top-6 w-24 h-24 bg-emerald-50 rounded-full opacity-50"></div>
-                        <div className="relative z-10 flex items-start gap-4">
-                            <div className="p-3 bg-emerald-100 rounded-full text-emerald-600 flex-shrink-0">
-                                <Trophy className="w-5 h-5" />
+                        <div className="relative z-10 flex items-start gap-3">
+                            <div className="p-2.5 bg-emerald-100 rounded-full text-emerald-600 flex-shrink-0">
+                                <Trophy className="w-4 h-4" />
                             </div>
                             <div>
-                                <h4 className="text-sm font-bold text-emerald-600 mb-1">가장 크게 성장한 영역</h4>
-                                <div className="text-xl font-bold text-slate-800 mb-2">
+                                <h4 className="text-[11px] font-bold text-emerald-600 mb-0.5">가장 크게 성장한 영역</h4>
+                                <div className="text-[15px] font-bold text-slate-800 mb-1.5">
                                     {maxGrowth.key === 'D7' ? '7. ' : maxGrowth.key.replace('D', '') + '. '}
                                     {maxGrowth.name}
                                 </div>
-                                <div className="flex items-center gap-2 font-medium text-sm">
+                                <div className="flex items-center gap-2 font-medium text-[90%] text-xs">
                                     <span className="text-slate-500">{maxGrowth.previous.toFixed(1)}점 → {maxGrowth.current.toFixed(1)}점</span>
-                                    <span className="text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full">+{maxGrowth.diff.toFixed(1)}</span>
+                                    <span className="text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded-full">+{maxGrowth.diff.toFixed(1)}</span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     {/* 3. Area Needing Improvement Card */}
-                    <div className="bg-white rounded-xl p-6 border border-rose-100 shadow-sm relative overflow-hidden">
+                    <div className="bg-white rounded-xl p-4 sm:p-5 border border-rose-100 shadow-sm relative overflow-hidden">
                         <div className="absolute -right-6 -top-6 w-24 h-24 bg-rose-50 rounded-full opacity-50"></div>
-                        <div className="relative z-10 flex items-start gap-4">
-                            <div className="p-3 bg-rose-100 rounded-full text-rose-600 flex-shrink-0">
-                                <History className="w-5 h-5" />
+                        <div className="relative z-10 flex items-start gap-3">
+                            <div className="p-2.5 bg-rose-100 rounded-full text-rose-600 flex-shrink-0">
+                                <History className="w-4 h-4" />
                             </div>
                             <div>
-                                <h4 className="text-sm font-bold text-rose-600 mb-1">집중 개선이 필요한 영역</h4>
-                                <div className="text-xl font-bold text-slate-800 mb-2">
+                                <h4 className="text-[11px] font-bold text-rose-600 mb-0.5">집중 개선이 필요한 영역</h4>
+                                <div className="text-[15px] font-bold text-slate-800 mb-1.5">
                                     {worstArea.key === 'D7' ? '7. ' : worstArea.key.replace('D', '') + '. '}
                                     {worstArea.name}
                                 </div>
-                                <div className="flex items-center gap-2 font-medium text-sm">
+                                <div className="flex items-center gap-2 font-medium text-xs">
                                     <span className="text-slate-500">{worstArea.previous.toFixed(1)}점 → {worstArea.current.toFixed(1)}점</span>
-                                    <span className="text-rose-600 font-bold bg-rose-50 px-2 py-0.5 rounded-full">
+                                    <span className="text-rose-600 font-bold bg-rose-50 px-1.5 py-0.5 rounded-full">
                                         {worstArea.diff > 0 ? '+' : ''}{worstArea.diff.toFixed(1)}
                                     </span>
                                 </div>
@@ -145,11 +145,11 @@ export default function GrowthAnalysis({ current, previous, maxScores }: GrowthA
                 </div>
 
                 {/* 4. Breakdown List (Simple Grid) */}
-                <div className="pt-4 border-t border-gray-100">
-                    <h5 className="text-sm font-semibold text-slate-400 mb-4">영역별 변화</h5>
-                    <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+                <div className="pt-4 border-t border-gray-50 mt-1">
+                    <h5 className="text-[12px] font-semibold text-slate-400 mb-3">영역별 변화</h5>
+                    <div className="grid grid-cols-2 gap-x-8 gap-y-3.5">
                         {dimDiffs.map(item => (
-                            <div key={item.key} className="flex justify-between items-center text-sm">
+                            <div key={item.key} className="flex justify-between items-center text-[12.5px]">
                                 <span className="text-slate-500 font-medium">{item.name}</span>
                                 <span className={`font-bold ${item.diff > 0 ? 'text-emerald-600' :
                                     item.diff < 0 ? 'text-rose-500' : 'text-slate-300'

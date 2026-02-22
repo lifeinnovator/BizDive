@@ -68,3 +68,6 @@ CREATE POLICY "Users can insert own diagnosis" ON public.diagnosis_records
 
 CREATE POLICY "Users can view own diagnosis" ON public.diagnosis_records
   FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own diagnosis" ON public.diagnosis_records
+  FOR DELETE USING (auth.uid() = user_id);

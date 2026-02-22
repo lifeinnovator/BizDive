@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import DiagnosisForm from '@/components/diagnosis/DiagnosisForm'
+import DiagnosisForm, { ProfileData } from '@/components/diagnosis/DiagnosisForm'
 import { Database } from '@/types/database'
 import { getGuestQuestions } from '@/app/diagnosis/actions'
 import { useRouter } from 'next/navigation'
@@ -11,15 +11,15 @@ type Question = Database['public']['Tables']['questions']['Row']
 
 interface DiagnosisWrapperProps {
     initialQuestions?: Question[]
-    user?: any
-    profile?: any
+    user?: { id: string } | null
+    profile?: ProfileData | null
     isGuest?: boolean
 }
 
 export default function DiagnosisWrapper({ initialQuestions, user, profile, isGuest }: DiagnosisWrapperProps) {
     const router = useRouter()
     const [questions, setQuestions] = useState<Question[]>(initialQuestions || [])
-    const [guestProfile, setGuestProfile] = useState<any>(null)
+    const [guestProfile, setGuestProfile] = useState<ProfileData | null>(null)
     const [loading, setLoading] = useState(isGuest)
 
     useEffect(() => {
@@ -33,6 +33,7 @@ export default function DiagnosisWrapper({ initialQuestions, user, profile, isGu
             }
 
             const guestData = JSON.parse(guestDataStr)
+             
             setGuestProfile({
                 company_name: guestData.company_name,
                 user_name: guestData.username,
@@ -78,7 +79,7 @@ export default function DiagnosisWrapper({ initialQuestions, user, profile, isGu
         <DiagnosisForm
             questions={questions}
             userId={user?.id || 'guest'}
-            profile={profile || guestProfile}
+            profile={profile || guestProfile || {}}
             isGuest={isGuest}
         />
     )

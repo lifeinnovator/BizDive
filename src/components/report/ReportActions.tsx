@@ -40,14 +40,14 @@ export function ReportHeaderActions() {
     }
 
     return (
-        <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => router.push('/')}>
-                <Home className="h-4 w-4 mr-2" />
-                홈으로
+        <div className="flex items-center gap-1 sm:gap-2">
+            <Button variant="ghost" size="sm" onClick={() => router.push('/')} className="px-2 sm:px-3">
+                <Home className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-2" />
+                <span className="hidden sm:inline">홈으로</span>
             </Button>
-            <Button variant="ghost" size="sm" onClick={handleLogout} className="text-red-500 hover:text-red-600 hover:bg-red-50">
-                <LogOut className="h-4 w-4 mr-2" />
-                로그아웃
+            <Button variant="ghost" size="sm" onClick={handleLogout} className="px-2 sm:px-3 text-red-500 hover:text-red-600 hover:bg-red-50">
+                <LogOut className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-2" />
+                <span className="hidden sm:inline">로그아웃</span>
             </Button>
         </div>
     )

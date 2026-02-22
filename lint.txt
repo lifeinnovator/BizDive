@@ -1,0 +1,83 @@
+
+> bizdive-service@0.1.0 lint
+> eslint
+
+(node:24532) ESLintIgnoreWarning: The ".eslintignore" file is no longer supported. Switch to using the "ignores" property in "eslint.config.js": https://eslint.org/docs/latest/use/configure/migration-guide#ignoring-files
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+D:\Dev\bizdive-service\next.config.ts
+  1:15  warning  'NextConfig' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Dev\bizdive-service\src\app\dashboard\page.tsx
+   8:55  warning  'Calendar' is defined but never used                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+   9:10  warning  'Badge' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  39:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+D:\Dev\bizdive-service\src\app\diagnosis\actions.ts
+  4:10  warning  'Database' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Dev\bizdive-service\src\app\login\page.tsx
+  67:18  warning  'err' is defined but never used                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+  78:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+D:\Dev\bizdive-service\src\app\onboarding\page.tsx
+  90:50  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  91:56  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Dev\bizdive-service\src\app\report\page.tsx
+  132:33  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  156:29  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  302:66  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+
+D:\Dev\bizdive-service\src\components\diagnosis\DiagnosisForm.tsx
+   13:60  warning  'Mail' is defined but never used                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+   13:79  warning  'User' is defined but never used                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+   31:14  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  187:25  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  206:27  warning  'newDiagnosis' is assigned a value but never used                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  224:49  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  330:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+D:\Dev\bizdive-service\src\components\diagnosis\DiagnosisWrapper.tsx
+  14:12  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-explicit-any
+  15:15  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-explicit-any
+  22:54  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-explicit-any
+  36:13  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\Dev\bizdive-service\src\components\diagnosis\DiagnosisWrapper.tsx:36:13
+  34 |
+  35 |             const guestData = JSON.parse(guestDataStr)
+> 36 |             setGuestProfile({
+     |             ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  37 |                 company_name: guestData.company_name,
+  38 |                 user_name: guestData.username,
+  39 |                 email: guestData.email,  react-hooks/set-state-in-effect
+  49:31  warning  'error' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+
+D:\Dev\bizdive-service\src\components\report\GrowthAnalysis.tsx
+   2:10  warning  'Card' is defined but never used               @typescript-eslint/no-unused-vars
+   2:16  warning  'CardContent' is defined but never used        @typescript-eslint/no-unused-vars
+   2:29  warning  'CardHeader' is defined but never used         @typescript-eslint/no-unused-vars
+   2:41  warning  'CardTitle' is defined but never used          @typescript-eslint/no-unused-vars
+   3:36  warning  'Minus' is defined but never used              @typescript-eslint/no-unused-vars
+   3:43  warning  'ArrowUpRight' is defined but never used       @typescript-eslint/no-unused-vars
+   4:10  warning  'Badge' is defined but never used              @typescript-eslint/no-unused-vars
+  71:11  warning  'prevDate' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Dev\bizdive-service\src\lib\diagnosis-logic.ts
+  6:6  warning  'Profile' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Dev\bizdive-service\src\lib\scoring-utils.ts
+  3:6  warning  'Question' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Dev\bizdive-service\src\middleware.ts
+  21:58  warning  'options' is defined but never used  @typescript-eslint/no-unused-vars
+
+✖ 35 problems (10 errors, 25 warnings)
+

@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Save, Loader2, Radar, CheckCircle2, ArrowLeft, X, Mail, Lock, Phone, User } from 'lucide-react'
 import { getStageInfo } from '@/data/feedback'
-import { computeSectionScore, calculateTotalScore, getGrade } from '@/lib/scoring-utils'
+import { getGrade } from '@/lib/scoring-utils'
 import { Input } from '@/components/ui/input'
 import {
     Dialog,
@@ -25,10 +25,21 @@ import {
 
 type Question = Database['public']['Tables']['questions']['Row']
 
+export interface ProfileData {
+    email?: string;
+    user_name?: string;
+    name?: string;
+    company_name?: string;
+    stage?: string;
+    industry?: string;
+    user_title?: string;
+    [key: string]: unknown;
+}
+
 interface DiagnosisFormProps {
     questions: Question[]
     userId: string
-    profile: any
+    profile: ProfileData
     isGuest?: boolean
 }
 
@@ -149,7 +160,7 @@ export default function DiagnosisForm({ questions, userId, profile, isGuest = fa
         try {
             // 1. Sign Up
             const { data: authData, error: authError } = await supabase.auth.signUp({
-                email: profile.email,
+                email: profile.email || '',
                 password: regPassword,
                 options: {
                     data: {
@@ -184,13 +195,13 @@ export default function DiagnosisForm({ questions, userId, profile, isGuest = fa
             // Clear session guest data
             sessionStorage.removeItem('bizdive_guest')
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Registration/Save Error:', error)
 
-            if (error.message.includes('already registered')) {
+            if (error instanceof Error && error.message.includes('already registered')) {
                 setRegError('이미 가입된 이메일입니다. 로그인 후 이용해주세요.')
             } else {
-                setRegError(error.message || '가입 및 저장 중 오류가 발생했습니다.')
+                setRegError(error instanceof Error ? error.message : '가입 및 저장 중 오류가 발생했습니다.')
             }
             setRegLoading(false)
         }
@@ -221,7 +232,7 @@ export default function DiagnosisForm({ questions, userId, profile, isGuest = fa
             router.push('/report')
         } catch (error) {
             console.error('Error saving result:', error)
-            alert(`저장 중 오류가 발생했습니다: ${(error as any).message || JSON.stringify(error)}`)
+            alert(`저장 중 오류가 발생했습니다: ${error instanceof Error ? error.message : JSON.stringify(error)}`)
             // If failed during register-save, restore loading state
             if (isGuest) setRegLoading(false)
         } finally {

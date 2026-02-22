@@ -1,0 +1,5 @@
+src/_backup_deprecated/
+verify-data.js
+verify-server.js
+check_counts.js
+tailwind.config.ts
