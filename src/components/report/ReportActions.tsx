@@ -10,10 +10,10 @@ export function PrintButton() {
         <Button
             variant="outline"
             onClick={() => window.print()}
-            className="gap-2"
+            className="flex-1 sm:flex-none gap-2 px-3 sm:px-4 h-10 text-[13px] sm:text-sm"
         >
-            <Printer className="h-4 w-4" />
-            리포트 인쇄 / PDF 저장
+            <Printer className="h-4 w-4 shrink-0" />
+            <span className="truncate">리포트 인쇄 / PDF 저장</span>
         </Button>
     )
 }
@@ -21,11 +21,11 @@ export function PrintButton() {
 export function ExpertRequestButton() {
     return (
         <Button
-            className="gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 shadow-md"
+            className="flex-1 sm:flex-none gap-2 px-3 sm:px-4 h-10 text-[13px] sm:text-sm bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 shadow-md"
             onClick={() => window.open('https://forms.gle/rxVu3dFYjRPNSHaY6', '_blank')} // Updated link
         >
-            <MessageSquare className="h-4 w-4" />
-            전문가 컨설팅 신청
+            <MessageSquare className="h-4 w-4 shrink-0" />
+            <span className="truncate">전문가 컨설팅 신청</span>
         </Button>
     )
 }

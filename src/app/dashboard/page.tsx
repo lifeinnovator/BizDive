@@ -91,13 +91,8 @@ export default async function DashboardPage() {
                     {records && records.length > 0 ? (
                         records.map((record: { id: string; total_score: number; created_at: string; stage_result: string; company_name?: string; }) => {
                             const stageInfo = getStageInfo(record.total_score)
-                            const date = new Date(record.created_at).toLocaleDateString('ko-KR', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            })
+                            const d = new Date(record.created_at)
+                            const date = `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
 
                             return (
                                 <Link href={`/report?id=${record.id}`} key={record.id} className="block group">

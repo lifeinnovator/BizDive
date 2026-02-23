@@ -133,7 +133,10 @@ export default async function ReportPage(props: { searchParams: Promise<{ id?: s
                                 상세 진단 결과
                             </h1>
                             <span className="text-xs text-slate-500 font-medium mt-0.5">
-                                {record.company_name || profile?.company_name || '회사명 미상'} | {profile?.user_name || '사용자'} | {new Date(record.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                {(() => {
+                                    const d = new Date(record.created_at);
+                                    return `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+                                })()}
                             </span>
                         </div>
                     </div>
@@ -160,7 +163,10 @@ export default async function ReportPage(props: { searchParams: Promise<{ id?: s
                     <div className="text-center">
                         <h1 className="text-3xl font-bold text-slate-900 tracking-tight">BizDive 기업경영 심층자가진단 리포트</h1>
                         <p className="text-slate-500 mt-3 font-medium">
-                            {record.company_name || profile?.company_name || '회사명 미상'} | {profile?.user_name || '사용자'} | {new Date(record.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
+                            {(() => {
+                                const d = new Date(record.created_at);
+                                return `${record.company_name || profile?.company_name || '회사명 미상'} | ${profile?.user_name || '사용자'} | ${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+                            })()}
                         </p>
                         <p className="text-slate-500 mt-1 font-medium text-sm">
                             [ {profileStageLabel} | {profileIndustryLabel} ]
