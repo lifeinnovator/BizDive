@@ -19,6 +19,9 @@ export interface Database {
                     industry: 'I' | 'H' | 'L' | 'CT' | null
                     user_name: string | null
                     user_title: string | null
+                    role: 'super_admin' | 'group_admin' | 'user'
+                    group_id: string | null
+                    project_id: string | null
                     created_at: string
                     updated_at: string
                 }
@@ -30,6 +33,9 @@ export interface Database {
                     industry?: 'I' | 'H' | 'L' | 'CT' | null
                     user_name?: string | null
                     user_title?: string | null
+                    role?: 'super_admin' | 'group_admin' | 'user'
+                    group_id?: string | null
+                    project_id?: string | null
                     created_at?: string
                     updated_at?: string
                 }
@@ -41,6 +47,9 @@ export interface Database {
                     industry?: 'I' | 'H' | 'L' | 'CT' | null
                     user_name?: string | null
                     user_title?: string | null
+                    role?: 'super_admin' | 'group_admin' | 'user'
+                    group_id?: string | null
+                    project_id?: string | null
                     created_at?: string
                     updated_at?: string
                 }
@@ -108,6 +117,93 @@ export interface Database {
                     dimension_scores?: Json | null
                     stage_result?: string | null
                     created_at?: string
+                }
+            }
+            groups: {
+                Row: {
+                    id: string
+                    name: string
+                    description: string | null
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: {
+                    id?: string
+                    name: string
+                    description?: string | null
+                    created_at?: string
+                    updated_at?: string
+                }
+                Update: {
+                    id?: string
+                    name?: string
+                    description?: string | null
+                    created_at?: string
+                    updated_at?: string
+                }
+            }
+            projects: {
+                Row: {
+                    id: string
+                    group_id: string | null
+                    name: string
+                    year: number | null
+                    start_date: string | null
+                    end_date: string | null
+                    manager_name: string | null
+                    status: 'active' | 'completed' | 'planned' | null
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: {
+                    id?: string
+                    group_id?: string | null
+                    name: string
+                    year?: number | null
+                    start_date?: string | null
+                    end_date?: string | null
+                    manager_name?: string | null
+                    status?: 'active' | 'completed' | 'planned' | null
+                    created_at?: string
+                    updated_at?: string
+                }
+                Update: {
+                    id?: string
+                    group_id?: string | null
+                    name?: string
+                    year?: number | null
+                    start_date?: string | null
+                    end_date?: string | null
+                    manager_name?: string | null
+                    status?: 'active' | 'completed' | 'planned' | null
+                    created_at?: string
+                    updated_at?: string
+                }
+            }
+            mentoring_memos: {
+                Row: {
+                    id: string
+                    company_id: string | null
+                    author_id: string | null
+                    content: string
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: {
+                    id?: string
+                    company_id?: string | null
+                    author_id?: string | null
+                    content: string
+                    created_at?: string
+                    updated_at?: string
+                }
+                Update: {
+                    id?: string
+                    company_id?: string | null
+                    author_id?: string | null
+                    content?: string
+                    created_at?: string
+                    updated_at?: string
                 }
             }
         }
