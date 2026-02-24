@@ -16,19 +16,22 @@ export default async function DashboardPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return redirect('/login')
 
-    // Fetch user profile
-    const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single()
+    // Fetch profile and diagnosis history in parallel
+    const [profileRes, recordsRes] = await Promise.all([
+        supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single(),
+        supabase
+            .from('diagnosis_records')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+    ])
 
-    // Fetch diagnosis history
-    const { data: records } = await supabase
-        .from('diagnosis_records')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
+    const profile = profileRes.data
+    const records = recordsRes.data
 
     return (
         <div className="min-h-screen bg-gray-50 pb-12">

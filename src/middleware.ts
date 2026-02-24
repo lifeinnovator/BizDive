@@ -30,7 +30,15 @@ export async function middleware(request: NextRequest) {
         }
     )
 
-    const { data: { user } } = await supabase.auth.getUser()
+    // 0. Skip auth check for guest-accessible routes to reduce latency
+    const pathname = request.nextUrl.pathname
+    const isGuestRoute = pathname.startsWith('/diagnosis') || pathname.startsWith('/report/preview')
+
+    let user = null
+    if (!isGuestRoute) {
+        const { data: { user: supabaseUser } } = await supabase.auth.getUser()
+        user = supabaseUser
+    }
 
     // 1. Protect /admin routes
     if (request.nextUrl.pathname.startsWith('/admin')) {
@@ -51,7 +59,7 @@ export async function middleware(request: NextRequest) {
 
     // 2. Protect /dashboard and saved report routes (standard auth check)
     //    /diagnosis and /report/preview are accessible to guests
-    const pathname = request.nextUrl.pathname
+
     if (pathname.startsWith('/dashboard') ||
         (pathname.startsWith('/report') && !pathname.startsWith('/report/preview'))) {
         if (!user) {
@@ -64,9 +72,13 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
     matcher: [
-        '/admin/:path*',
-        '/dashboard/:path*',
-        '/diagnosis/:path*',
-        '/report/:path*',
+        /*
+         * Match all request paths except for the ones starting with:
+         * - _next/static (static files)
+         * - _next/image (image optimization files)
+         * - favicon.ico (favicon file)
+         * - public assets
+         */
+        '/((?!_next/static|_next/image|favicon.ico|public|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
     ],
 }

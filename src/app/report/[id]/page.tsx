@@ -24,38 +24,43 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return redirect('/login')
 
-    // 2. Fetch the specific diagnosis record
-    const { data: record, error } = await supabase
-        .from('diagnosis_records')
-        .select(`
-            *,
-            profiles!diagnosis_records_user_id_fkey (
-                user_name,
-                company_name,
-                stage,
-                industry,
-                group_id
-            )
-        `)
-        .eq('id', id)
-        .single()
+    // 2. Fetch record and current user's profile in parallel for security checks
+    const [recordRes, currentUserRes] = await Promise.all([
+        supabase
+            .from('diagnosis_records')
+            .select(`
+                *,
+                profiles!diagnosis_records_user_id_fkey (
+                    user_name,
+                    company_name,
+                    stage,
+                    industry,
+                    group_id
+                )
+            `)
+            .eq('id', id)
+            .single(),
+        supabase
+            .from('profiles')
+            .select('role, group_id')
+            .eq('id', user.id)
+            .single()
+    ])
+
+    const { data: record, error } = recordRes
+    const { data: currentUserProfile } = currentUserRes
 
     if (error || !record) {
         console.error("Report not found:", error)
         return notFound()
     }
 
-    // Security check: only the owner or admins should see this
-    // (In a real app, check role or user_id)
+    // Security check: owner, super_admin, or correct group_admin
     if (record.user_id !== user.id) {
-        // Potential check for group_admin or super_admin here
-        const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-        if (profile?.role !== 'super_admin') {
+        if (currentUserProfile?.role !== 'super_admin') {
             // For group_admin, check if the record's user belongs to their group
-            const { data: recordUser } = await supabase.from('profiles').select('group_id').eq('id', record.user_id).single()
-            const { data: adminProfile } = await supabase.from('profiles').select('group_id').eq('id', user.id).single()
-
-            if (profile?.role !== 'group_admin' || recordUser?.group_id !== adminProfile?.group_id) {
+            // We already have the group_id from record.profiles (joined) and currentUserRes
+            if (currentUserProfile?.role !== 'group_admin' || record.profiles?.group_id !== currentUserProfile?.group_id) {
                 return redirect('/dashboard')
             }
         }
@@ -63,21 +68,23 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
 
     const profile = record.profiles;
 
-    // 3. Fetch previous record
-    const { data: previousRecord } = await supabase
-        .from('diagnosis_records')
-        .select('*')
-        .eq('user_id', record.user_id)
-        .lt('created_at', record.created_at)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
+    // 3. Fetch previous record and questions in parallel
+    const [previousRes, questions] = await Promise.all([
+        supabase
+            .from('diagnosis_records')
+            .select('*')
+            .eq('user_id', record.user_id)
+            .lt('created_at', record.created_at)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle(),
+        getDiagnosisQuestions({
+            stage: profile.stage,
+            industry: profile.industry
+        })
+    ])
 
-    // 4. Calculate Max Scores
-    const questions = await getDiagnosisQuestions({
-        stage: profile.stage,
-        industry: profile.industry
-    })
+    const previousRecord = previousRes.data
 
     const maxScores: Record<string, number> = {}
     questions.forEach(q => {
