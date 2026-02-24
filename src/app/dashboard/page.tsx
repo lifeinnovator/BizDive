@@ -95,7 +95,7 @@ export default async function DashboardPage() {
                             const date = `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
 
                             return (
-                                <Link href={`/report?id=${record.id}`} key={record.id} className="block group">
+                                <Link href={`/report/${record.id}`} key={record.id} className="block group">
                                     <Card className="hover:shadow-md transition-all duration-200 border-gray-200 overflow-hidden">
                                         <CardContent className="p-0">
                                             <div className="flex items-center h-[88px]">

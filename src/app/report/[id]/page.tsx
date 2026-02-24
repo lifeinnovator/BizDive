@@ -105,21 +105,21 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
     const profileIndustryLabel = INDUSTRY_LABELS[profile.industry] || profile.industry
 
     return (
-        <div className="min-h-screen bg-slate-50 pb-12 print:bg-white print:pb-0">
-            {/* Nav Header */}
-            <header className="bg-white/80 backdrop-blur-md border-b sticky top-0 z-50 print:hidden">
+        <div className="min-h-screen bg-gray-50 pb-12 print:bg-white print:pb-0">
+            {/* Header - Hidden on Print */}
+            <header className="bg-white border-b sticky top-0 z-50 print:hidden">
                 <div className="max-w-7xl mx-auto h-16 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
                     <div className="flex items-center gap-3">
-                        <Link href="/dashboard" className="p-2 -ml-2 rounded-xl hover:bg-slate-100 transition-colors">
+                        <Link href="/dashboard" className="p-2 -ml-2 rounded-full hover:bg-slate-100 transition-colors">
                             <ArrowLeft className="h-5 w-5 text-slate-600" />
                         </Link>
                         <div className="flex flex-col">
-                            <h1 className="text-[17px] font-bold text-slate-900 leading-tight flex items-center gap-2">
+                            <h1 className="text-[17px] font-bold text-gray-900 leading-tight flex items-center gap-2">
                                 <img src="/favicon.png" alt="BizDive" className="w-5 h-5 rounded" />
-                                심층 진단 리포트
+                                상세 진단 결과
                             </h1>
-                            <span className="text-[10px] text-slate-400 font-semibold mt-0.5 uppercase tracking-wider">
-                                Report ID: {id.slice(0, 8)} • {new Date(record.created_at).toLocaleDateString()}
+                            <span className="text-xs text-slate-500 font-medium mt-0.5">
+                                {record.company_name || profile?.company_name || '회사명 미상'} | {profile?.user_name || '사용자'} | {new Date(record.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
                             </span>
                         </div>
                     </div>
@@ -129,173 +129,201 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 print:p-0 print:max-w-none">
 
-                {/* Print Meta Information */}
-                <div className="hidden print:block mb-10 border-b pb-6 text-center">
-                    <h1 className="text-3xl font-bold text-slate-900 mb-2">BizDive 기업경영 심층 진단 리포트</h1>
-                    <p className="text-slate-500 font-semibold">{profile.company_name} | {profile.user_name} | {new Date(record.created_at).toLocaleString()}</p>
+                {/* Actions Bar - Hidden on Print */}
+                <div className="flex justify-end gap-3 mb-6 print:hidden">
+                    <PrintButton />
+                    <ExpertRequestButton />
                 </div>
 
-                {/* Main Content Grid */}
-                <div className="space-y-8">
-                    {/* Summary Hero Section */}
-                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-                        <Card className="xl:col-span-2 border-none shadow-sm bg-slate-900 text-white overflow-hidden relative">
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
-                            <CardContent className="p-10 relative z-10">
-                                {/* Header Row */}
-                                <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-8">
-                                    <div className="flex items-center gap-2">
-                                        <Badge className="bg-slate-700 text-white border-none font-black px-3 py-1 rounded-full text-[11px]">Stage {record.stage_result}</Badge>
-                                        <Badge variant="outline" className="border-slate-700 text-slate-300 font-bold px-3 py-1 rounded-full text-[11px]">{profileStageLabel} | {profileIndustryLabel}</Badge>
-                                    </div>
-                                    <div className="text-right">
-                                        <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest block mb-1">TOTAL SCORE</span>
-                                        <div className="flex items-baseline justify-end gap-1">
-                                            <span className="text-5xl font-black text-white">{totalScore.toFixed(1)}</span>
-                                            <span className="text-xl text-slate-500 font-bold ml-1">/ 100.0</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Main Title Section */}
-                                <div className="mb-12">
-                                    <h2 className="text-4xl font-black tracking-tight mb-4">{stageInfo.stageName}</h2>
-                                    <p className="text-slate-400 text-lg font-bold leading-relaxed">{stageInfo.shortDesc}</p>
-                                </div>
-
-                                <div className="border-t border-white/5 my-10" />
-
-                                {/* Detailed Results Section */}
-                                <div className="space-y-10">
-                                    <h3 className="flex items-center gap-2 text-white font-black text-lg">
-                                        <CheckCircle2 size={20} className="text-indigo-400" /> 상세 진단 결과
-                                    </h3>
-
-                                    <div className="space-y-8 max-w-5xl">
-                                        <div className="space-y-3">
-                                            <h4 className="text-indigo-400 font-black text-[15px] uppercase tracking-wider">현황 진단</h4>
-                                            <p className="text-slate-200 text-[15px] leading-relaxed font-medium">{stageInfo.diagnosis}</p>
-                                        </div>
-
-                                        <div className="space-y-3">
-                                            <h4 className="text-emerald-400 font-black text-[15px] uppercase tracking-wider">전문가 제언</h4>
-                                            <p className="text-slate-200 text-[15px] leading-relaxed font-medium">{stageInfo.suggestion}</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Terminology Section */}
-                                {stageInfo.terms && stageInfo.terms.length > 0 && (
-                                    <div className="mt-12 pt-8 border-t border-white/5">
-                                        <div className="space-y-2">
-                                            {stageInfo.terms.map((term: string, idx: number) => (
-                                                <p key={idx} className="text-[13px] text-slate-500 font-medium leading-relaxed">
-                                                    * {term}
-                                                </p>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-
-                        {/* Radar Chart Section */}
-                        <Card className="border-none shadow-sm bg-white overflow-hidden">
-                            <CardHeader className="border-b border-slate-50 pb-4">
-                                <CardTitle className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                                    <div className="p-1.5 bg-indigo-50 rounded-lg text-indigo-600">
-                                        <HelpCircle size={18} />
-                                    </div>
-                                    7-Dimension 밸런스
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-6 flex items-center justify-center min-h-[350px]">
-                                <DiagnosisRadarChart
-                                    sectionScores={dimensionScores}
-                                    previousScores={previousRecord?.dimension_scores as any}
-                                />
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-                        {/* Detailed Breakdown */}
-                        <Card className="xl:col-span-2 border-none shadow-sm bg-white overflow-hidden">
-                            <CardHeader className="border-b border-slate-50 pb-4">
-                                <CardTitle className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                                    항목별 정밀 분석
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-8 space-y-10">
-                                {Object.keys(dimensionScores).sort().map((dim, idx) => {
-                                    const score = dimensionScores[dim]
-                                    const maxScore = maxScores[dim] || 15
-                                    const rawScore = (score / 100) * maxScore
-
-                                    let level: 'high' | 'mid' | 'low' = 'mid'
-                                    if (score >= 80) level = 'high'
-                                    else if (score < 40) level = 'low'
-
-                                    const feedback = (FEEDBACK_DB as any)[dim]?.[level] || "분석 대기 중"
-
-                                    return (
-                                        <div key={dim} className="group transition-all">
-                                            <div className="flex justify-between items-end mb-3">
-                                                <div className="space-y-1">
-                                                    <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest">Dimension 0{idx + 1}</span>
-                                                    <h4 className="text-lg font-bold text-slate-900">{DIMENSION_KR[dim] || dim}</h4>
-                                                </div>
-                                                <div className="text-right">
-                                                    <span className="text-2xl font-bold text-slate-900">{rawScore.toFixed(1)}</span>
-                                                    <span className="text-slate-400 text-sm font-semibold ml-1">/ {maxScore}</span>
-                                                </div>
-                                            </div>
-                                            <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden border border-slate-100 flex shadow-inner">
-                                                <div
-                                                    className="h-full bg-gradient-to-r from-indigo-500 to-indigo-400 rounded-full transition-all duration-1000 shadow-sm"
-                                                    style={{ width: `${score}%` }}
-                                                />
-                                            </div>
-                                            <div className="mt-4 bg-slate-50/80 border border-slate-100 p-5 rounded-2xl flex gap-4">
-                                                <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-indigo-500 shrink-0 shadow-sm">
-                                                    <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
-                                                </div>
-                                                <p className="text-slate-600 text-sm font-medium leading-relaxed">{feedback}</p>
-                                            </div>
-                                        </div>
-                                    )
-                                })}
-                            </CardContent>
-                        </Card>
-
-                        {/* Sidebar: Growth & Tools */}
-                        <div className="space-y-8">
-                            {previousRecord && (
-                                <GrowthAnalysis
-                                    current={record}
-                                    previous={previousRecord}
-                                    maxScores={maxScores}
-                                />
-                            )}
-
-                            <ConsultantBanner />
-
-                            {/* Action Card */}
-                            <Card className="bg-indigo-600 text-white border-none shadow-lg shadow-indigo-100 p-8 overflow-hidden relative group">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700"></div>
-                                <div className="relative z-10">
-                                    <h4 className="text-xl font-bold mb-3">데이터를 더 깊이 있게 분석하고 싶으신가요?</h4>
-                                    <p className="text-indigo-100 text-sm font-semibold opacity-80 mb-6 leading-relaxed">
-                                        전문 컨설턴트와의 1:1 디브리핑을 통해 우리 기업만의 맞춤형 스케일업 로드맵을 설계할 수 있습니다.
-                                    </p>
-                                    <Button className="w-full bg-white text-indigo-600 hover:bg-slate-50 font-bold h-12 rounded-xl border-none shadow-lg outline-none">
-                                        전문가 멘토링 신청하기
-                                    </Button>
-                                </div>
-                            </Card>
+                {/* Print Only Header */}
+                <div className="hidden print:block mb-8 border-b pb-4">
+                    <div className="flex justify-end mb-4">
+                        <div className="flex items-center gap-2 text-indigo-900">
+                            <img src="/favicon.png" alt="BizDive" className="w-5 h-5 rounded" />
+                            <span className="font-bold text-sm tracking-tight">BizDive</span>
                         </div>
                     </div>
+                    <div className="text-center">
+                        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">BizDive 기업경영 심층진단 리포트</h1>
+                        <p className="text-slate-500 mt-3 font-medium">
+                            {record.company_name || profile?.company_name || '회사명 미상'} | {profile?.user_name || '사용자'} | {new Date(record.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
+                        </p>
+                        <p className="text-slate-500 mt-1 font-medium text-sm">
+                            [ {profileStageLabel} | {profileIndustryLabel} ]
+                        </p>
+                    </div>
                 </div>
+
+                {/* Top Overview Card */}
+                <div className="bg-white shadow rounded-xl overflow-hidden mb-8 border border-gray-100 print:mb-4 print:shadow-none print:border">
+                    <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-8 print:p-5 text-white">
+                        <div className="md:flex md:items-start md:justify-between">
+                            <div>
+                                <div className="flex items-center gap-3 mb-2">
+                                    <Badge variant="secondary" className="bg-white/20 text-white hover:bg-white/30 border-none text-xs">
+                                        Stage {record.stage_result}
+                                    </Badge>
+                                    <Badge variant="outline" className="border-white/30 text-white hover:bg-white/10 text-xs">
+                                        {profileStageLabel} | {profileIndustryLabel}
+                                    </Badge>
+                                </div>
+                                <h2 className="text-2xl font-bold tracking-tight mb-2">
+                                    {stageInfo.stageName}
+                                </h2>
+                                <p className="text-slate-300 max-w-2xl text-[15px] opacity-90">
+                                    {stageInfo.shortDesc}
+                                </p>
+                            </div>
+                            <div className="mt-6 md:mt-0 text-right">
+                                <span className="block text-xs text-slate-400 font-medium uppercase tracking-wider">Total Score</span>
+                                <div className="flex items-baseline justify-end gap-2">
+                                    <span className="text-4xl font-extrabold text-white tracking-tight">{totalScore.toFixed(1)}</span>
+                                    <span className="text-lg text-slate-400 font-medium">/ 100.0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-[#0f172a] px-5 sm:px-8 py-8 print:px-5 print:py-5 text-slate-300 print:bg-white print:text-slate-800 border-t print:border-slate-200">
+                        <div className="flex items-center gap-2 text-white font-bold text-[16px] mb-6 print:mb-4 print:text-slate-900">
+                            <CheckCircle2 className="w-5 h-5 text-indigo-400" />
+                            상세 진단 결과
+                        </div>
+
+                        <div className="mb-6">
+                            <h3 className="text-[14.5px] font-semibold text-indigo-400 mb-2">
+                                현황 진단
+                            </h3>
+                            <p className="leading-relaxed text-[14px]">
+                                {stageInfo.diagnosis}
+                            </p>
+                        </div>
+
+                        <div className="mb-6">
+                            <h3 className="text-[14.5px] font-semibold text-emerald-400 mb-2">
+                                전문가 제언
+                            </h3>
+                            <p className="leading-relaxed text-[14px]">
+                                {stageInfo.suggestion}
+                            </p>
+                        </div>
+
+                        {stageInfo.terms && stageInfo.terms.length > 0 && (
+                            <>
+                                <hr className="border-slate-700/60 my-5 print:border-slate-200" />
+                                <div className="space-y-1.5">
+                                    {stageInfo.terms.map((term: string, idx: number) => (
+                                        <p key={idx} className="text-[13px] text-slate-400 print:text-slate-500">
+                                            {term}
+                                        </p>
+                                    ))}
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 print:gap-4 print:grid-cols-1 print:break-inside-avoid">
+
+                    {/* Left Column: Radar Chart & Growth Analysis */}
+                    <div className="space-y-8 lg:space-y-10">
+                        {/* Radar Chart */}
+                        <Card className="shadow-lg border-gray-100/50 rounded-2xl print:shadow-none print:border h-fit overflow-hidden bg-white">
+                            <CardHeader className="pb-4 border-b border-gray-50 bg-slate-50/30">
+                                <CardTitle className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3 text-slate-800">
+                                        <div className="p-2 bg-white rounded-xl shadow-sm border border-indigo-100 text-indigo-600">
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
+                                        </div>
+                                        <span className="text-xl font-bold tracking-tight">7-Dimension 밸런스</span>
+                                    </div>
+                                    {previousRecord && (
+                                        <div className="px-3 py-1 rounded-full bg-slate-100 text-xs font-medium text-slate-600 flex items-center gap-1.5 border border-slate-200">
+                                            <History className="w-3.5 h-3.5" />
+                                            이전 진단과 비교
+                                        </div>
+                                    )}
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="flex justify-center py-10">
+                                <DiagnosisRadarChart
+                                    sectionScores={dimensionScores}
+                                    previousScores={previousRecord?.dimension_scores as Record<string, number> | undefined}
+                                />
+                            </CardContent>
+                        </Card>
+
+                        {/* Growth Analysis (Left Column) */}
+                        {previousRecord && (
+                            <GrowthAnalysis
+                                current={record}
+                                previous={previousRecord}
+                                maxScores={maxScores}
+                            />
+                        )}
+                    </div>
+
+                    {/* Right Column: Detailed Feedback List */}
+                    <Card className="shadow-lg border-gray-100/50 rounded-2xl print:shadow-none print:border h-fit bg-white print:mt-4">
+                        <CardHeader className="pb-5 border-b border-gray-50 bg-slate-50/30 print:pb-4">
+                            <CardTitle className="flex items-center gap-2.5 text-slate-800">
+                                <div className="p-1.5 bg-white rounded-lg shadow-sm border border-blue-100 text-blue-600">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                                </div>
+                                <span className="text-[16px] font-bold tracking-tight">항목별 정밀 분석</span>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-6 space-y-7">
+                            {Object.keys(dimensionScores).sort().map((dim, idx) => {
+                                const score = dimensionScores[dim]
+                                const maxScore = maxScores[dim] || 15
+                                const rawScore = (score / 100) * maxScore
+
+                                let level = 'mid'
+                                if (score >= 80) level = 'high'
+                                else if (score < 40) level = 'low'
+
+                                const feedback = (FEEDBACK_DB as Record<string, any>)[dim as string]?.[level] || "분석 데이터가 충분하지 않습니다."
+
+                                return (
+                                    <div key={dim} className="group print:break-inside-avoid">
+                                        {/* Header: Title & Score */}
+                                        <div className="flex justify-between items-end mb-2.5">
+                                            <h4 className="text-[14.5px] font-bold text-gray-900 flex items-center gap-2">
+                                                <span className="text-indigo-600 font-bold text-[13px]">{idx + 1}.</span>
+                                                {DIMENSION_KR[dim] || dim}
+                                            </h4>
+                                            <div className="text-right">
+                                                <span className="text-[18px] font-extrabold text-slate-800">
+                                                    {rawScore.toFixed(1)}
+                                                </span>
+                                                <span className="text-gray-400 font-medium text-[12.5px] ml-1">/ {maxScore}</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Progress Bar */}
+                                        <div className="h-2.5 w-full bg-gray-100 rounded-full overflow-hidden mb-3 border border-gray-100">
+                                            <div
+                                                className="h-full rounded-full transition-all duration-1000 ease-out shadow-sm bg-amber-400"
+                                                style={{ width: `${score}%` }}
+                                            ></div>
+                                        </div>
+
+                                        {/* Feedback Box */}
+                                        <div className="relative bg-amber-50/60 border border-amber-200 rounded-lg p-3.5 sm:p-4 flex gap-3.5 text-[13.5px] text-slate-700 leading-relaxed hover:bg-amber-50 hover:shadow-sm transition-all">
+                                            <div className="flex-shrink-0 mt-0.5 text-amber-500">
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
+                                            </div>
+                                            <p className="font-medium opacity-90">{feedback}</p>
+                                        </div>
+                                    </div>
+                                )
+                            })}
+                        </CardContent>
+                    </Card>
+                </div>
+
+                <ConsultantBanner />
             </main>
         </div>
     )

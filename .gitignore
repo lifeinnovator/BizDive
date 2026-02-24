@@ -40,3 +40,17 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .env*.local
+
+# archive & logs
+archive/
+*.log
+*.bak
+eslint-errors.json
+tsc_output.txt
+corruption_search_results.txt
+final_corruption_check.txt
+migrate_data.js
+migrations_list.txt
+supabase_debug.log
+supabase_reset_debug*.log
+reset_error.log

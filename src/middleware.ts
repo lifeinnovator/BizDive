@@ -49,10 +49,11 @@ export async function middleware(request: NextRequest) {
         }
     }
 
-    // 2. Protect /dashboard and /diagnosis routes (standard auth check)
-    if (request.nextUrl.pathname.startsWith('/dashboard') ||
-        request.nextUrl.pathname.startsWith('/diagnosis') ||
-        request.nextUrl.pathname.startsWith('/report')) {
+    // 2. Protect /dashboard and saved report routes (standard auth check)
+    //    /diagnosis and /report/preview are accessible to guests
+    const pathname = request.nextUrl.pathname
+    if (pathname.startsWith('/dashboard') ||
+        (pathname.startsWith('/report') && !pathname.startsWith('/report/preview'))) {
         if (!user) {
             return NextResponse.redirect(new URL('/login', request.url))
         }
