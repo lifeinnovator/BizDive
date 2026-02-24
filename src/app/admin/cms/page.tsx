@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
     Search,
     Filter,
@@ -11,41 +11,83 @@ import {
     Trash2,
     Settings2,
     ChevronDown,
-    Info
+    Info,
+    Loader2
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useRouter } from 'next/navigation'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
+} from '@/components/ui/dialog'
+import { fetchAllQuestions, updateQuestionDirect, Question } from '@/lib/cms-logic'
+import { toast } from 'sonner'
 
-const mockQuestions = [
-    { id: 'D1-C-001', dimension: 'D1', category: 'common', content: '회사의 핵심 가치와 비전이 명확하게 정의되어 있습니까?', weight: 1.2, rationale: '비전의 명확성은 초기 성장의 기초입니다.' },
-    { id: 'D2-S-005', dimension: 'D2', category: 'stage', mapping_code: 'P', content: 'MVP 테스트를 위한 프로토타입이 준비되어 있습니까?', weight: 1.0, rationale: 'Pre-startup 단계에서는 실체 확인이 중요합니다.' },
-    { id: 'D4-I-012', dimension: 'D4', category: 'industry', mapping_code: 'I', content: '최근 3개월 내 유료 고객 유입 채널을 분석했습니까?', weight: 1.5, rationale: 'IT 서비스의 지표 관리 역량을 평가합니다.' },
-    { id: 'D7-E-001', dimension: 'D7', category: 'esg', content: '탄소 배출 저감을 위한 구체적인 목표치가 있습니까?', weight: 0.8, rationale: 'ESG 경영의 실행 의지를 확인합니다.' },
-]
+const mockQuestions: any[] = [] // Removed actual mock data
 
 export default function CMSPage() {
+    const [questions, setQuestions] = useState<Question[]>([])
+    const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState('')
     const [isEditing, setIsEditing] = useState<string | null>(null)
     const [userRole, setUserRole] = useState<string | null>(null)
+    const [userId, setUserId] = useState<string | null>(null)
+    const router = useRouter()
 
     React.useEffect(() => {
-        const fetchRole = async () => {
+        const init = async () => {
             const { createClient } = await import('@/lib/supabase')
             const supabase = createClient()
             const { data: { user } } = await supabase.auth.getUser()
 
+            let profileRole = null
             if (user) {
-                const { data: profile } = await supabase
+                setUserId(user.id)
+                const { data: profileData } = await supabase
                     .from('profiles')
                     .select('role')
                     .eq('id', user.id)
                     .single()
-                setUserRole(profile?.role || null)
+                profileRole = profileData?.role || null
+                setUserRole(profileRole)
+
+                // Path Protection: Only super_admin can stay here
+                if (profileRole !== 'super_admin') {
+                    toast.error('권한이 없습니다. 최고 관리자 전용 메뉴입니다.')
+                    router.push('/admin/projects')
+                    return
+                }
+            } else {
+                router.push('/admin') // Redirect to login if no user
+                return
+            }
+
+            try {
+                const data = await fetchAllQuestions()
+                setQuestions(data)
+            } catch (err) {
+                console.error(err)
+                toast.error('질문 데이터를 불러오는데 실패했습니다.')
+            } finally {
+                setLoading(false)
             }
         }
-        fetchRole()
-    }, [])
+        init()
+    }, [router])
+
+
+
+    const filteredQuestions = questions.filter((q: Question) =>
+        q.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        q.id.toLowerCase().includes(searchTerm.toLowerCase())
+    )
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
@@ -77,7 +119,7 @@ export default function CMSPage() {
                             placeholder="질문 내용이나 ID로 검색..."
                             className="bg-transparent border-none outline-none text-sm w-full placeholder:text-slate-400 font-medium"
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
                         />
                     </div>
                     <div className="flex gap-3">
@@ -90,97 +132,104 @@ export default function CMSPage() {
                             <Filter size={16} />
                             분류 필터
                         </Button>
-                        {userRole === 'super_admin' ? (
-                            <Button className="gap-2 bg-slate-900 text-white hover:bg-slate-800 h-11 rounded-xl">
-                                <Plus size={18} />
-                                문항 추가
-                            </Button>
-                        ) : (
-                            <Button variant="outline" className="gap-2 border-indigo-200 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 h-11 rounded-xl border-dashed">
-                                <Plus size={18} />
-                                문항 추가 제안
-                            </Button>
-                        )}
+                        <Button className="gap-2 bg-slate-900 text-white hover:bg-slate-800 h-11 rounded-xl">
+                            <Plus size={18} />
+                            문항 추가
+                        </Button>
                     </div>
                 </CardContent>
             </Card>
 
+
+
             {/* Editor List */}
             <div className="space-y-4">
-                {mockQuestions.map((q) => (
-                    <Card key={q.id} className={`border-none shadow-sm transition-all duration-300 ${isEditing === q.id ? 'ring-2 ring-indigo-500 shadow-xl' : 'hover:shadow-md'}`}>
-                        <CardContent className="p-0">
-                            <div className="flex items-stretch overflow-hidden rounded-xl">
-                                {/* Side Tag */}
-                                <div className={`w-2 ${q.dimension === 'D1' ? 'bg-blue-500' :
-                                    q.dimension === 'D2' ? 'bg-indigo-500' :
-                                        q.dimension === 'D4' ? 'bg-emerald-500' : 'bg-slate-300'
-                                    }`} />
+                {loading ? (
+                    <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+                        <Loader2 className="h-10 w-10 animate-spin mb-4" />
+                        <p>문항 데이터를 불러오는 중...</p>
+                    </div>
+                ) : filteredQuestions.length === 0 ? (
+                    <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-200">
+                        <p className="text-slate-400">검색 결과가 없습니다.</p>
+                    </div>
+                ) : (
+                    filteredQuestions.map((q: Question) => (
+                        <Card key={q.id} className={`border-none shadow-sm transition-all duration-300 ${isEditing === q.id ? 'ring-2 ring-indigo-500 shadow-xl' : 'hover:shadow-md'}`}>
+                            <CardContent className="p-0">
+                                <div className="flex items-stretch overflow-hidden rounded-xl">
+                                    {/* Side Tag */}
+                                    <div className={`w-2 ${q.dimension === 'D1' ? 'bg-blue-500' :
+                                        q.dimension === 'D2' ? 'bg-indigo-500' :
+                                            q.dimension === 'D4' ? 'bg-emerald-500' : 'bg-slate-300'
+                                        }`} />
 
-                                <div className="flex-grow p-6">
-                                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                                        <div className="space-y-3 flex-grow">
-                                            <div className="flex items-center gap-3">
-                                                <Badge variant="outline" className="font-bold text-slate-400 border-slate-200">{q.id}</Badge>
-                                                <Badge className="bg-slate-100 text-slate-600 hover:bg-slate-200 border-none font-bold uppercase text-[10px]">
-                                                    {q.category} {q.mapping_code && `(${q.mapping_code})`}
-                                                </Badge>
+                                    <div className="flex-grow p-6">
+                                        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                                            <div className="space-y-3 flex-grow">
+                                                <div className="flex items-center gap-3">
+                                                    <Badge variant="outline" className="font-bold text-slate-400 border-slate-200">{q.id}</Badge>
+                                                    <Badge className="bg-slate-100 text-slate-600 hover:bg-slate-200 border-none font-bold uppercase text-[10px]">
+                                                        {q.category} {q.mapping_code && `(${q.mapping_code})`}
+                                                    </Badge>
+                                                </div>
+
+                                                {isEditing === q.id ? (
+                                                    <textarea
+                                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                                        defaultValue={q.content}
+                                                        rows={2}
+                                                    />
+                                                ) : (
+                                                    <h3 className="text-lg font-bold text-slate-800 leading-snug">{q.content}</h3>
+                                                )}
+
+                                                <div className="flex flex-wrap items-center gap-6 mt-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-xs font-black text-slate-400 uppercase tracking-tighter">가중치</span>
+                                                        {isEditing === q.id ? (
+                                                            <input type="number" step="0.1" className="w-16 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-sm font-bold" defaultValue={q.score_weight || 1} />
+                                                        ) : (
+                                                            <span className="text-sm font-black text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">{q.score_weight || 1}</span>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-grow max-w-md">
+                                                        <Info size={14} className="text-slate-300 shrink-0" />
+                                                        <p className="text-xs text-slate-400 font-medium italic truncate">{q.rationale}</p>
+                                                    </div>
+                                                </div>
                                             </div>
 
-                                            {isEditing === q.id ? (
-                                                <textarea
-                                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                                                    defaultValue={q.content}
-                                                    rows={2}
-                                                />
-                                            ) : (
-                                                <h3 className="text-lg font-bold text-slate-800 leading-snug">{q.content}</h3>
-                                            )}
-
-                                            <div className="flex flex-wrap items-center gap-6 mt-4">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-xs font-black text-slate-400 uppercase tracking-tighter">가중치</span>
-                                                    {isEditing === q.id ? (
-                                                        <input type="number" step="0.1" className="w-16 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-sm font-bold" defaultValue={q.weight} />
-                                                    ) : (
-                                                        <span className="text-sm font-black text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">{q.weight}</span>
-                                                    )}
-                                                </div>
-                                                <div className="flex items-center gap-2 flex-grow max-w-md">
-                                                    <Info size={14} className="text-slate-300 shrink-0" />
-                                                    <p className="text-xs text-slate-400 font-medium italic truncate">{q.rationale}</p>
-                                                </div>
+                                            <div className="flex md:flex-col gap-2 shrink-0">
+                                                {isEditing === q.id ? (
+                                                    <Button
+                                                        onClick={() => setIsEditing(null)}
+                                                        className="bg-emerald-600 text-white hover:bg-emerald-700 h-10 px-4 rounded-xl font-bold"
+                                                    >
+                                                        완료
+                                                    </Button>
+                                                ) : (
+                                                    <Button
+                                                        variant="outline"
+                                                        onClick={() => setIsEditing(q.id)}
+                                                        className="h-10 w-10 p-0 border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-100"
+                                                    >
+                                                        <Edit2 size={18} />
+                                                    </Button>
+                                                )}
+                                                <Button variant="outline" className="h-10 w-10 p-0 border-slate-200 text-slate-400 hover:text-rose-500 hover:border-rose-100">
+                                                    <Trash2 size={18} />
+                                                </Button>
                                             </div>
-                                        </div>
-
-                                        <div className="flex md:flex-col gap-2 shrink-0">
-                                            {isEditing === q.id ? (
-                                                <Button
-                                                    onClick={() => setIsEditing(null)}
-                                                    className="bg-emerald-600 text-white hover:bg-emerald-700 h-10 px-4 rounded-xl font-bold"
-                                                >
-                                                    완료
-                                                </Button>
-                                            ) : (
-                                                <Button
-                                                    variant="outline"
-                                                    onClick={() => setIsEditing(q.id)}
-                                                    className="h-10 w-10 p-0 border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-100"
-                                                >
-                                                    <Edit2 size={18} />
-                                                </Button>
-                                            )}
-                                            <Button variant="outline" className="h-10 w-10 p-0 border-slate-200 text-slate-400 hover:text-rose-500 hover:border-rose-100">
-                                                <Trash2 size={18} />
-                                            </Button>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))}
+                            </CardContent>
+                        </Card>
+                    ))
+                )}
             </div>
+
 
             {/* Footer Info */}
             <div className="bg-slate-900/5 rounded-2xl p-6 border border-dashed border-slate-200">

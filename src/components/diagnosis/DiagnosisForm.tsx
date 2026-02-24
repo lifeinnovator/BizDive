@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { Database } from '@/types/database'
 import QuestionSection from './QuestionSection'
@@ -41,9 +41,18 @@ interface DiagnosisFormProps {
     userId: string
     profile: ProfileData
     isGuest?: boolean
+    round?: number
+    projectId?: string | null
 }
 
-export default function DiagnosisForm({ questions, userId, profile, isGuest = false }: DiagnosisFormProps) {
+export default function DiagnosisForm({
+    questions,
+    userId,
+    profile,
+    isGuest = false,
+    round = 1,
+    projectId = null
+}: DiagnosisFormProps) {
     const router = useRouter()
     const [answers, setAnswers] = useState<Record<string, boolean>>({})
     const [isSaving, setIsSaving] = useState(false)
@@ -54,6 +63,8 @@ export default function DiagnosisForm({ questions, userId, profile, isGuest = fa
     const [regContact, setRegContact] = useState('')
     const [regLoading, setRegLoading] = useState(false)
     const [regError, setRegError] = useState<string | null>(null)
+
+    const searchParams = useSearchParams()
 
     // Group questions by dimension
     const sections = useMemo(() => {
@@ -222,14 +233,15 @@ export default function DiagnosisForm({ questions, userId, profile, isGuest = fa
                     total_score: totalScore,
                     dimension_scores: sectionScores,
                     stage_result: stageResult,
-
+                    round: round,
+                    project_id: projectId
                 })
                 .select('id')
                 .single()
 
             if (error) throw error
 
-            router.push('/report')
+            router.push(`/report/${newDiagnosis.id}`)
         } catch (error) {
             console.error('Error saving result:', error)
             alert(`저장 중 오류가 발생했습니다: ${error instanceof Error ? error.message : JSON.stringify(error)}`)
@@ -243,43 +255,56 @@ export default function DiagnosisForm({ questions, userId, profile, isGuest = fa
     const today = new Date();
     const dateStr = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일`;
 
+    // Calculate progress
+    const totalQuestions = questions.length;
+    const answeredCount = Object.keys(answers).length;
+    const progressPercentage = totalQuestions > 0 ? (answeredCount / totalQuestions) * 100 : 0;
+
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-slate-50/50">
+            {/* Focus Mode Progress Bar (Sticky) */}
+            <div className="fixed top-0 left-0 w-full h-1.5 bg-slate-200 z-[60] print:hidden">
+                <div
+                    className="h-full bg-indigo-600 transition-all duration-500 ease-out shadow-[0_0_10px_rgba(79,70,229,0.5)]"
+                    style={{ width: `${progressPercentage}%` }}
+                />
+            </div>
+
             {/* Registration Modal for Guest */}
             <Dialog open={showRegisterModal} onOpenChange={setShowRegisterModal}>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="sm:max-w-md border-none shadow-2xl rounded-3xl">
                     <DialogHeader>
-                        <DialogTitle>진단 결과 저장 및 회원가입</DialogTitle>
-                        <DialogDescription>
-                            진단 결과를 영구 저장하고 리포트를 확인하기 위해<br />
+                        <DialogTitle className="text-xl font-black">진단 결과 저장 및 리포트 발급</DialogTitle>
+                        <DialogDescription className="font-medium text-slate-500">
+                            진단 결과를 영구 저장하고 맞춤형 성장 리포트를 확인하기 위해<br />
                             비밀번호와 연락처를 설정해주세요.
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="space-y-4 py-4">
-                        <div className="bg-slate-50 p-4 rounded-md space-y-2 text-sm text-muted-foreground">
-                            <div className="flex justify-between">
-                                <span>이름</span>
-                                <span className="font-medium text-foreground">{profile.user_name}</span>
+                        <div className="bg-slate-50 p-5 rounded-2xl space-y-3 text-sm border border-slate-100">
+                            <div className="flex justify-between items-center text-slate-500">
+                                <span className="font-bold">성함</span>
+                                <span className="font-black text-slate-900">{profile.user_name}</span>
                             </div>
-                            <div className="flex justify-between">
-                                <span>이메일</span>
-                                <span className="font-medium text-foreground">{profile.email}</span>
+                            <div className="flex justify-between items-center text-slate-500">
+                                <span className="font-bold">이메일</span>
+                                <span className="font-black text-slate-900">{profile.email}</span>
                             </div>
-                            <div className="flex justify-between">
-                                <span>기업명</span>
-                                <span className="font-medium text-foreground">{profile.company_name}</span>
+                            <div className="flex justify-between items-center text-slate-500">
+                                <span className="font-bold">기업명</span>
+                                <span className="font-black text-slate-900">{profile.company_name}</span>
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">비밀번호 설정</label>
+                            <label className="text-xs font-black text-slate-500 uppercase tracking-wider">비밀번호 설정</label>
                             <div className="relative">
-                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                                 <Input
                                     type="password"
                                     placeholder="6자 이상 입력"
-                                    className="pl-10"
+                                    className="pl-11 h-12 rounded-xl border-slate-200 focus:ring-indigo-500 font-medium"
                                     value={regPassword}
                                     onChange={(e) => setRegPassword(e.target.value)}
                                 />
@@ -287,13 +312,13 @@ export default function DiagnosisForm({ questions, userId, profile, isGuest = fa
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">연락처</label>
+                            <label className="text-xs font-black text-slate-500 uppercase tracking-wider">연락처</label>
                             <div className="relative">
-                                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                                 <Input
                                     type="text"
                                     placeholder="010-0000-0000"
-                                    className="pl-10"
+                                    className="pl-11 h-12 rounded-xl border-slate-200 focus:ring-indigo-500 font-medium"
                                     value={regContact}
                                     onChange={(e) => setRegContact(e.target.value)}
                                 />
@@ -301,211 +326,138 @@ export default function DiagnosisForm({ questions, userId, profile, isGuest = fa
                         </div>
 
                         {regError && (
-                            <div className="text-destructive text-sm bg-destructive/10 p-2 rounded flex items-center gap-2">
+                            <div className="text-destructive text-xs font-bold bg-destructive/5 p-3 rounded-xl flex items-center gap-2 border border-destructive/10">
                                 <X className="h-4 w-4" />
                                 {regError}
                             </div>
                         )}
                     </div>
 
-                    <DialogFooter>
-                        <Button variant="ghost" onClick={() => setShowRegisterModal(false)}>취소</Button>
+                    <DialogFooter className="gap-2 sm:gap-0">
+                        <Button variant="ghost" onClick={() => setShowRegisterModal(false)} className="rounded-xl font-bold">취소</Button>
                         <Button
                             onClick={handleRegisterAndSave}
                             disabled={regLoading}
-                            className="bg-gradient-primary text-white"
+                            className="bg-slate-900 text-white hover:bg-slate-800 rounded-xl font-bold h-11 px-6 shadow-lg shadow-slate-200"
                         >
                             {regLoading ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                     저장 중...
                                 </>
-                            ) : '가입 및 결과 확인'}
+                            ) : '회원가입 및 결과 확인'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
-            {/* Header */}
-            <header className="bg-card/80 backdrop-blur-md border-b border-border sticky top-0 z-50">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+            {/* Focus Header */}
+            <header className="bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-50">
+                <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <img src="/favicon.png" alt="BizDive" className="w-8 h-8 rounded-xl shadow-sm" />
+                        <div>
+                            <h1 className="text-base font-black text-slate-900 tracking-tight">
+                                7D 기업경영 심층자가진단
+                            </h1>
+                            <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                <span>{profile.company_name}</span>
+                                <span className="opacity-30">|</span>
+                                <span>{profile.user_name || profile.name}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <div className="text-right hidden sm:block">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">PROGRESS</span>
+                            <span className="text-sm font-black text-indigo-600">{Math.round(progressPercentage)}% <span className="text-slate-300 font-bold ml-0.5">({answeredCount}/{totalQuestions})</span></span>
+                        </div>
                         <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => router.push('/')}
-                            className="mr-2"
+                            onClick={() => {
+                                if (confirm('진단을 중단하고 메인으로 돌아가시겠습니까? 입력 중인 내용은 저장되지 않습니다.')) {
+                                    router.push('/')
+                                }
+                            }}
+                            className="rounded-xl hover:bg-slate-100"
                         >
-                            <ArrowLeft className="h-5 w-5" />
+                            <X className="h-5 w-5 text-slate-400" />
                         </Button>
-                        <img src="/favicon.png" alt="BizDive" className="w-8 h-8 rounded-lg" />
-                        <div>
-                            <h1 className="text-lg font-bold text-foreground flex items-center gap-2">
-                                BizDive - 7D 기업경영 심층자가진단
-                            </h1>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
-                                <span>{profile.company_name || '기업명'} | {profile.user_name || profile.name || '대표자'}</span>
-                                <span className="text-muted-foreground/50">|</span>
-                                <span>{dateStr}</span>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </header>
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24">
-                <div className="flex flex-col lg:flex-row gap-8">
-                    {/* Left: Questions */}
-                    <div className="lg:w-2/3 space-y-6">
-                        {/* Intro Card */}
-                        <Card className="border-l-4 border-l-primary shadow-soft">
-                            <CardContent className="pt-6">
-                                <h2 className="text-xl font-bold text-foreground mb-4">진단 안내</h2>
-                                <div className="text-muted-foreground text-sm leading-relaxed space-y-3 text-justify">
-                                    <p>
-                                        본 기업현황 자가진단은 서비스 디자인 방법론(Double Diamond)과 PSST 사업계획 방법론, 전략컨설팅 프레임워크 방법론 등을 융합하여
-                                        설계된 고도화된 경영 진단 도구입니다. 시장 기회 탐색부터 사업성 검증까지 7가지 핵심 영역을
-                                        입체적으로 정밀 분석합니다.
-                                    </p>
-                                    <p>
-                                        이를 통해 기업은 현재의 성장 단계를 명확히 인지하고, 다음 단계로 도약하기 위한 구체적인
-                                        실행 전략을 수립할 수 있습니다.
-                                    </p>
-                                </div>
-                                <div className="mt-4 pt-4 border-t border-border flex justify-between items-center text-xs text-muted-foreground">
-                                    <span>※ 총 {questions.length}문항 (100점 만점)</span>
-                                    <span>(항목 중요도에 따라 1.0~2.0점 배점 차등 적용)</span>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Questions */}
-                        {sections.map((section, idx) => (
-                            <QuestionSection
-                                key={section.id}
-                                section={section}
-                                sectionIndex={idx}
-                                answers={answers}
-                                onAnswerChange={handleAnswerChange}
-                            />
-                        ))}
-
-                        {/* Save Result Button Section */}
-                        <div className="mt-12 pt-8 border-t border-border">
-                            <div className="max-w-xl mx-auto text-center">
-                                <h3 className="text-xl font-bold">진단 완료</h3>
-                                <p className="text-muted-foreground mt-2 mb-6">
-                                    모든 문항에 대한 응답을 마쳤습니다. 결과를 저장하고 맞춤 분석 리포트를 확인하세요.
-                                </p>
-                                <Button
-                                    onClick={handleSaveClick}
-                                    disabled={isSaving}
-                                    className="w-full sm:w-auto h-12 px-8 bg-gradient-primary text-lg font-bold shadow-lg hover:shadow-primary/40 transition-shadow duration-300"
-                                >
-                                    {isSaving ? (
-                                        <>
-                                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                            저장 중...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Save className="mr-2 h-5 w-5" />
-                                            진단 결과 저장하기
-                                        </>
-                                    )}
-                                </Button>
+            <main className="max-w-3xl mx-auto px-4 py-12 pb-32">
+                <div className="space-y-12">
+                    {/* Intro Card */}
+                    <div className="bg-white border border-slate-100 p-8 rounded-[2rem] shadow-sm relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-full blur-3xl -mr-16 -mt-16 opacity-50"></div>
+                        <div className="relative z-10">
+                            <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white mb-6 shadow-lg shadow-indigo-100">
+                                <Radar size={24} />
                             </div>
+                            <h2 className="text-2xl font-black text-slate-900 mb-4 tracking-tight">비즈니스의 본질을 꿰뚫는 7가지 입체 진단</h2>
+                            <p className="text-slate-500 text-sm font-medium leading-relaxed text-justify">
+                                BizDive의 7D 프레임워크는 시장 기회 탐색부터 사업성 검증까지 전 과정을 정밀 분석합니다.
+                                솔직하고 객관적인 답변은 기업의 현재 위치를 정확히 파악하고, 다음 단계(Scale-up)로 도약하기 위한 가장 강력한 무기가 됩니다.
+                                <br /><br />
+                                <span className="text-indigo-600 font-bold italic">※ 총 {questions.length}개 문항 • 예상 소요 시간 5~10분</span>
+                            </p>
                         </div>
                     </div>
 
-                    {/* Right: Dashboard */}
-                    <div className="lg:w-1/3">
-                        <div className="sticky top-24 space-y-6 custom-scrollbar max-h-[calc(100vh-8rem)] overflow-y-auto pr-2 pb-10">
-                            {/* Stage Card */}
-                            <Card className="bg-primary text-primary-foreground shadow-elevated overflow-hidden border-none text-white">
-                                <CardContent className="pt-6 relative">
-                                    <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-bl-full -mr-4 -mt-4" />
-                                    <div className="relative">
-                                        <span className="text-primary-foreground/70 text-xs font-bold uppercase tracking-wider">
-                                            Current Stage
-                                        </span>
-                                        <h2 className="text-2xl font-bold mt-1">
-                                            {totalScore === 0 ? '진단 대기 중' : stageInfo?.stageName}
-                                        </h2>
-                                        <p className="text-primary-foreground/80 text-sm mt-1">
-                                            {totalScore === 0 ? '좌측 문항에 응답하여 단계 확인' : stageInfo?.shortDesc}
-                                        </p>
-                                    </div>
-                                </CardContent>
-                            </Card>
+                    {/* Questions Grouped by Sections */}
+                    <div className="space-y-16">
+                        {sections.map((section, idx) => (
+                            <div key={section.id} className="animate-fade-in">
+                                <QuestionSection
+                                    section={section}
+                                    sectionIndex={idx}
+                                    answers={answers}
+                                    onAnswerChange={handleAnswerChange}
+                                />
+                            </div>
+                        ))}
+                    </div>
 
-                            {/* Score Card */}
-                            <Card className="shadow-elevated overflow-hidden border-none">
-                                <CardContent className="pt-6 relative">
-                                    <div className="absolute top-0 right-0 w-24 h-24 bg-accent rounded-bl-full -mr-4 -mt-4 z-0" />
-                                    <div className="relative z-10">
-                                        <span className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
-                                            Total Score
-                                        </span>
-                                        <div className="flex items-baseline gap-2 mt-1">
-                                            <span className="text-5xl font-extrabold text-foreground">
-                                                {totalScore.toFixed(1)}
-                                            </span>
-                                            <span className="text-muted-foreground text-lg font-medium">/ 100.0</span>
+                    {/* Completion Action */}
+                    <div className="pt-12 border-t border-slate-200">
+                        <div className="bg-slate-900 rounded-[2.5rem] p-10 text-center text-white relative overflow-hidden shadow-2xl shadow-slate-200">
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
+                            <div className="relative z-10 max-w-md mx-auto">
+                                <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10 rounded-full mb-6 backdrop-blur-sm border border-white/10">
+                                    <CheckCircle2 size={32} className="text-indigo-400" />
+                                </div>
+                                <h3 className="text-2xl font-bold mb-3 tracking-tight">모든 진단 항목에 응답하셨습니다</h3>
+                                <p className="text-slate-400 text-sm font-medium opacity-90 mb-8 leading-relaxed">
+                                    {answeredCount < totalQuestions
+                                        ? (
+                                            <>
+                                                7가지 항목의 자가진단 항목에 답변을 완료하셨습니다.<br />
+                                                데이터의 정확도를 위해 모든 문항을 확인해 주세요.
+                                            </>
+                                        )
+                                        : '제공해주신 데이터를 정밀하게 분석하여, 우리 기업의 현재 위치와 맞춤형 성장 전략이 담긴 리포트를 생성합니다.'}
+                                </p>
+                                <Button
+                                    onClick={handleSaveClick}
+                                    disabled={isSaving || answeredCount === 0}
+                                    className="w-full h-14 bg-white text-slate-900 hover:bg-slate-100 rounded-2xl font-bold text-lg transition-all duration-300 shadow-xl shadow-black/10"
+                                >
+                                    {isSaving ? (
+                                        <div className="flex items-center gap-3">
+                                            <Loader2 className="h-5 w-5 animate-spin" />
+                                            데이터 분석 및 리포트 생성 중...
                                         </div>
-                                        <div className="w-full bg-muted rounded-full h-3 mt-4 overflow-hidden">
-                                            <div
-                                                className="bg-gradient-primary h-full rounded-full transition-all duration-1000"
-                                                style={{ width: `${Math.min(totalScore, 100)}%` }}
-                                            />
+                                    ) : (
+                                        <div className="flex items-center gap-3">
+                                            <Save size={20} />
+                                            심층 진단 리포트 확인하기
                                         </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            {/* Radar Chart */}
-                            <Card className="shadow-card border-border">
-                                <CardHeader className="pb-2">
-                                    <CardTitle className="text-sm flex items-center gap-2">
-                                        <Radar className="h-4 w-4 text-primary" />
-                                        7-Dimension 밸런스
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <RadarChart sectionScores={sectionScores} />
-                                </CardContent>
-                            </Card>
-
-                            {/* Diagnosis Detail */}
-                            <Card className="bg-slate-900 text-slate-100 shadow-elevated border-slate-800">
-                                <CardHeader className="pb-2 border-b border-slate-700">
-                                    <CardTitle className="text-sm flex items-center gap-2 text-slate-100">
-                                        <CheckCircle2 className="h-4 w-4 text-indigo-400" />
-                                        상세 진단 결과
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="pt-4">
-                                    <DiagnosisDetail totalScore={totalScore} />
-                                </CardContent>
-                            </Card>
-
-                            {/* Category Breakdown */}
-                            <Card className="shadow-card border-border">
-                                <CardHeader className="pb-2">
-                                    <CardTitle className="text-sm flex items-center gap-2">
-                                        <CheckCircle2 className="h-4 w-4 text-primary" />
-                                        항목별 정밀 분석
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <CategoryBreakdown
-                                        sectionScores={sectionScores}
-                                        earnedScores={sectionEarnedScores}
-                                        maxScores={sectionMaxScores}
-                                        totalScore={totalScore}
-                                    />
-                                </CardContent>
-                            </Card>
+                                    )}
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -513,6 +465,7 @@ export default function DiagnosisForm({ questions, userId, profile, isGuest = fa
         </div>
     )
 }
+
 
 // Helpers for Dimension Info (Mock/Static for now)
 function getDimensionTitle(key: string) {

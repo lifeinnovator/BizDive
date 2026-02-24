@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import DiagnosisForm, { ProfileData } from '@/components/diagnosis/DiagnosisForm'
 import { Database } from '@/types/database'
 import { getGuestQuestions } from '@/app/diagnosis/actions'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 
 type Question = Database['public']['Tables']['questions']['Row']
@@ -18,6 +18,10 @@ interface DiagnosisWrapperProps {
 
 export default function DiagnosisWrapper({ initialQuestions, user, profile, isGuest }: DiagnosisWrapperProps) {
     const router = useRouter()
+    const searchParams = useSearchParams()
+    const round = parseInt(searchParams.get('round') || '1')
+    const projectIdString = searchParams.get('projectId') || (profile?.project_id as string | undefined) || null
+
     const [questions, setQuestions] = useState<Question[]>(initialQuestions || [])
     const [guestProfile, setGuestProfile] = useState<ProfileData | null>(null)
     const [loading, setLoading] = useState(isGuest)
@@ -33,7 +37,7 @@ export default function DiagnosisWrapper({ initialQuestions, user, profile, isGu
             }
 
             const guestData = JSON.parse(guestDataStr)
-             
+
             setGuestProfile({
                 company_name: guestData.company_name,
                 user_name: guestData.username,
@@ -81,6 +85,8 @@ export default function DiagnosisWrapper({ initialQuestions, user, profile, isGu
             userId={user?.id || 'guest'}
             profile={profile || guestProfile || {}}
             isGuest={isGuest}
+            round={round}
+            projectId={projectIdString}
         />
     )
 }

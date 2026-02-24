@@ -21,8 +21,8 @@ BEGIN
     -- 1. Create Projects
     -- ==========================================
     INSERT INTO public.projects (id, group_id, name, year, start_date, end_date, manager_name, status) VALUES 
-        (project1_id, group1_id, '2026 스타트업 스케일업 파도타기', 2026, '2026-03-01', '2026-11-30', '김담당 (Accelerator A)', 'active'),
-        (project2_id, group2_id, 'C-프로그램 유망기업 발굴전', 2026, '2026-01-15', '2026-08-15', '이매니저 (창업진흥원)', 'active')
+        (project1_id, group1_id, '2026 ?��??�업 ?��??�업 ?�도?��?, 2026, '2026-03-01', '2026-11-30', '김?�당 (Accelerator A)', 'active'),
+        (project2_id, group2_id, 'C-?�로그램 ?�망기업 발굴??, 2026, '2026-01-15', '2026-08-15', '?�매?��? (창업진흥??', 'active')
     ON CONFLICT (id) DO UPDATE
     SET name = EXCLUDED.name, status = EXCLUDED.status;
 
@@ -48,7 +48,7 @@ BEGIN
             -- Insert random memo from group admin
             IF random() > 0.5 THEN
                 INSERT INTO public.mentoring_memos (company_id, author_id, content)
-                VALUES (company_row.id, group1_admin_id, '기업 진단 결과 전반적으로 양호함. HR 쪽 보완 필요.');
+                VALUES (company_row.id, group1_admin_id, '기업 진단 결과 ?�반?�으�??�호?? HR �?보완 ?�요.');
             END IF;
         ELSE
             UPDATE public.profiles SET project_id = project2_id WHERE id = company_row.id;
@@ -56,10 +56,13 @@ BEGIN
             -- Insert random memo
             IF random() > 0.5 THEN
                 INSERT INTO public.mentoring_memos (company_id, author_id, content)
-                VALUES (company_row.id, group2_admin_id, 'ESG 지표 개선을 위한 추가 멘토링 배정 예정.');
+                VALUES (company_row.id, group2_admin_id, 'ESG 지??개선???�한 추�? 멘토�?배정 ?�정.');
             END IF;
         END IF;
 
     END LOOP;
 
 END $$;
+
+
+

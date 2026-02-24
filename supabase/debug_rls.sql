@@ -26,3 +26,6 @@ CREATE POLICY "Users can view own profile" ON public.profiles FOR SELECT USING (
 -- Re-enable RLS
 ALTER TABLE public.diagnosis_records ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+
+
+

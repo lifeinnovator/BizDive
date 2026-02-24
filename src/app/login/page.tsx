@@ -59,9 +59,10 @@ export default function LoginPage() {
             });
 
             if (error) {
+                console.error('Login Error:', error);
                 setError('이메일 또는 비밀번호가 일치하지 않습니다.');
             } else {
-                router.push('/dashboard'); // Need to create/update dashboard
+                router.push('/dashboard');
                 router.refresh();
             }
         } catch (err) {

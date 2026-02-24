@@ -48,6 +48,7 @@ export default function AdminLayout({
             <AdminSidebar
                 isCollapsed={isCollapsed}
                 toggleCollapse={() => setIsCollapsed(!isCollapsed)}
+                userRole={userProfile?.role}
             />
 
             <div

@@ -1,5 +1,5 @@
 
--- ⚠️ DANGER: This script will DELETE ALL DATA ⚠️
+-- ?�️ DANGER: This script will DELETE ALL DATA ?�️
 
 -- 1. Reset Diagnosis Data
 TRUNCATE TABLE public.diagnosis_records CASCADE;
@@ -16,3 +16,6 @@ TRUNCATE TABLE public.profiles CASCADE;
 -- To delete users, it's safest to use the Supabase Dashboard > Authentication > Users > Select All > Delete
 -- Or if you really want to do it via SQL and know what you are doing:
 -- DELETE FROM auth.users; 
+
+
+

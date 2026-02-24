@@ -22,14 +22,14 @@ BEGIN
     -- 1. Create 2 Test Groups (Institutions)
     -- ==========================================
     INSERT INTO public.groups (id, name, description) VALUES 
-        (group1_id, '스타트업 액셀러레이터 A', '초기 스타트업 지원을 위한 1기 교육 프로그램'),
-        (group2_id, '창업진흥원 C-프로그램', '지역 중소기업 성장 촉진 관리기관')
+        (group1_id, '?��??�업 ?��??�레?�터 A', '초기 ?��??�업 지?�을 ?�한 1�?교육 ?�로그램'),
+        (group2_id, '창업진흥??C-?�로그램', '지??중소기업 ?�장 촉진 관리기관')
     ON CONFLICT (id) DO NOTHING;
 
     -- ==========================================
     -- 2. Create/Update Super Admin Account
     -- ==========================================
-    user_email := 'admin@bizdive.com';
+    user_email := 'life.innovator@gmail.com';
     SELECT id INTO admin_id FROM auth.users WHERE email = user_email;
 
     IF admin_id IS NULL THEN
@@ -90,7 +90,7 @@ BEGIN
                 crypt('test1234', gen_salt('bf')), 
                 now(), 
                 '{"provider":"email","providers":["email"]}'::jsonb, 
-                ('{"name": "테스트 참가 기업 ' || user_idx || '"}')::jsonb, 
+                ('{"name": "?�스??참�? 기업 ' || user_idx || '"}')::jsonb, 
                 now(), 
                 now()
             );
@@ -103,8 +103,8 @@ BEGIN
             user_email,
             group_id_val,
             role_val,
-            CASE WHEN role_val = 'group_admin' THEN '기관 담당자 (테스트)' ELSE '참가 기업 담당자' END,
-            CASE WHEN role_val = 'group_admin' THEN '테스트 기관그룹' ELSE '테스트 참가 기업 ' || user_idx END
+            CASE WHEN role_val = 'group_admin' THEN '기�? ?�당??(?�스??' ELSE '참�? 기업 ?�당?? END,
+            CASE WHEN role_val = 'group_admin' THEN '?�스??기�?그룹' ELSE '?�스??참�? 기업 ' || user_idx END
         )
         ON CONFLICT (id) DO UPDATE 
         SET group_id = EXCLUDED.group_id, 
@@ -131,3 +131,6 @@ BEGIN
     END LOOP;
 
 END $$;
+
+
+

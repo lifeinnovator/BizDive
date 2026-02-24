@@ -25,8 +25,23 @@ const navItems = [
     { name: '설정', href: '/admin/settings', icon: Settings },
 ]
 
-export default function AdminSidebar({ isCollapsed, toggleCollapse }: { isCollapsed: boolean, toggleCollapse: () => void }) {
+interface SidebarProps {
+    isCollapsed: boolean;
+    toggleCollapse: () => void;
+    userRole?: string;
+}
+
+export default function AdminSidebar({
+    isCollapsed,
+    toggleCollapse,
+    userRole
+}: SidebarProps) {
     const pathname = usePathname()
+
+    const filteredNavItems = navItems.filter(item => {
+        if (item.href === '/admin/cms' && userRole !== 'super_admin') return false
+        return true
+    })
 
     return (
         <aside
@@ -52,7 +67,7 @@ export default function AdminSidebar({ isCollapsed, toggleCollapse }: { isCollap
 
                 {/* Navigation */}
                 <nav className="flex-grow py-6 px-3 space-y-1">
-                    {navItems.map((item) => {
+                    {filteredNavItems.map((item) => {
                         const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href))
                         return (
                             <Link

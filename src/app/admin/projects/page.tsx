@@ -14,6 +14,16 @@ import {
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog"
 import { createClient } from '@/lib/supabase'
 
 export default function ProjectsPage() {
@@ -21,6 +31,20 @@ export default function ProjectsPage() {
     const [projects, setProjects] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [userProfile, setUserProfile] = useState<any>(null)
+    const [availableGroups, setAvailableGroups] = useState<any[]>([])
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [newProject, setNewProject] = useState({
+        name: '',
+        group_id: '',
+        year: new Date().getFullYear(),
+        start_date: '',
+        end_date: '',
+        manager_name: '',
+        status: 'planned',
+        round: 1,
+        sponsor_agency: ''
+    })
 
     useEffect(() => {
         const fetchData = async () => {
@@ -41,7 +65,10 @@ export default function ProjectsPage() {
             // 2. Fetch Projects with RBAC
             let projectsQ = supabase.from('projects').select('*, groups(name)')
 
-            if (profile?.role === 'group_admin' && profile.group_id) {
+            if (profile?.role === 'super_admin') {
+                const { data: groupsData } = await supabase.from('groups').select('*').order('name')
+                setAvailableGroups(groupsData || [])
+            } else if (profile?.role === 'group_admin' && profile.group_id) {
                 projectsQ = projectsQ.eq('group_id', profile.group_id)
             }
 
@@ -57,6 +84,45 @@ export default function ProjectsPage() {
         project.manager_name?.toLowerCase().includes(searchTerm.toLowerCase())
     )
 
+    const handleCreateProject = async () => {
+        if (!newProject.name) return
+
+        setIsSubmitting(true)
+        const supabase = createClient()
+
+        const projectData = {
+            ...newProject,
+            group_id: userProfile?.role === 'super_admin' ? (newProject.group_id || null) : userProfile?.group_id,
+            start_date: newProject.start_date || null,
+            end_date: newProject.end_date || null
+        }
+
+        const { data, error } = await supabase
+            .from('projects')
+            .insert([projectData])
+            .select('*, groups(name)')
+
+        setIsSubmitting(false)
+        if (error) {
+            console.error('Error creating project:', error)
+            alert('사업 생성에 실패했습니다.')
+        } else {
+            setIsCreateModalOpen(false)
+            setProjects(data ? [data[0], ...projects] : projects)
+            setNewProject({
+                name: '',
+                group_id: '',
+                year: new Date().getFullYear(),
+                start_date: '',
+                end_date: '',
+                manager_name: '',
+                status: 'planned',
+                round: 1,
+                sponsor_agency: ''
+            })
+        }
+    }
+
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-700">
             {/* Header Section */}
@@ -66,10 +132,117 @@ export default function ProjectsPage() {
                     <p className="text-slate-500 mt-1 font-medium text-sm">운영 중인 참여 기업 기수(사업)를 관리하고 진단 현황을 추적합니다.</p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <Button className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl h-11 px-5 shadow-sm shadow-indigo-200 font-bold transition-all">
-                        <Plus size={18} />
-                        새 사업 생성
-                    </Button>
+                    <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+                        <DialogTrigger asChild>
+                            <Button className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl h-11 px-5 shadow-sm shadow-indigo-200 font-bold transition-all">
+                                <Plus size={18} />
+                                새 사업 생성
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[500px]">
+                            <DialogHeader>
+                                <DialogTitle>새 사업 생성</DialogTitle>
+                                <DialogDescription>
+                                    새로운 참여 기업 기수(사업)를 생성합니다.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="grid gap-4 py-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid gap-2">
+                                        <label className="text-sm font-medium">사업명 *</label>
+                                        <Input
+                                            value={newProject.name}
+                                            onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
+                                            placeholder="예: 2026 엑셀러레이팅 프로그램"
+                                        />
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <label className="text-sm font-medium">주관 기관</label>
+                                        <Input
+                                            value={newProject.sponsor_agency}
+                                            onChange={(e) => setNewProject({ ...newProject, sponsor_agency: e.target.value })}
+                                            placeholder="예: 창업진흥원, 중소벤처기업부"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    {userProfile?.role === 'super_admin' ? (
+                                        <div className="grid gap-2">
+                                            <label className="text-sm font-medium">소속 그룹(운영사) *</label>
+                                            <select
+                                                className="flex h-10 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                                value={newProject.group_id}
+                                                onChange={(e) => setNewProject({ ...newProject, group_id: e.target.value })}
+                                            >
+                                                <option value="">소속 그룹 선택</option>
+                                                {availableGroups.map(g => (
+                                                    <option key={g.id} value={g.id}>{g.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    ) : <div />}
+                                    <div className="grid gap-2">
+                                        <label className="text-sm font-medium">진단 차수</label>
+                                        <select
+                                            className="flex h-10 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                            value={newProject.round}
+                                            onChange={(e) => setNewProject({ ...newProject, round: Number(e.target.value) })}
+                                        >
+                                            <option value={1}>1차 진단 (사전)</option>
+                                            <option value={2}>2차 진단 (중간)</option>
+                                            <option value={3}>3차 진단 (사후)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid gap-2">
+                                        <label className="text-sm font-medium">시작일</label>
+                                        <Input
+                                            type="date"
+                                            value={newProject.start_date}
+                                            onChange={(e) => setNewProject({ ...newProject, start_date: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <label className="text-sm font-medium">종료일</label>
+                                        <Input
+                                            type="date"
+                                            value={newProject.end_date}
+                                            onChange={(e) => setNewProject({ ...newProject, end_date: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid gap-2">
+                                        <label className="text-sm font-medium">담당자명</label>
+                                        <Input
+                                            value={newProject.manager_name}
+                                            onChange={(e) => setNewProject({ ...newProject, manager_name: e.target.value })}
+                                            placeholder="담당자 이름"
+                                        />
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <label className="text-sm font-medium">상태</label>
+                                        <select
+                                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                            value={newProject.status}
+                                            onChange={(e) => setNewProject({ ...newProject, status: e.target.value })}
+                                        >
+                                            <option value="planned">예정</option>
+                                            <option value="active">진행 중</option>
+                                            <option value="completed">종료</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <DialogFooter>
+                                <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>취소</Button>
+                                <Button onClick={handleCreateProject} disabled={isSubmitting || !newProject.name}>
+                                    {isSubmitting ? '생성 중...' : '생성하기'}
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
                 </div>
             </div>
 
@@ -120,15 +293,21 @@ export default function ProjectsPage() {
                                         </Badge>
                                         {userProfile?.role === 'super_admin' && (
                                             <Badge variant="secondary" className="bg-slate-100 text-slate-600 font-medium text-[10px] uppercase">
-                                                {project.groups?.name}
+                                                {project.groups?.name || '운영사 없음'}
                                             </Badge>
                                         )}
                                     </div>
-                                    <h3 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors line-clamp-2">
+                                    <h3 className="text-lg font-bold text-slate-900 mb-1 group-hover:text-indigo-600 transition-colors line-clamp-2">
                                         {project.name}
                                     </h3>
+                                    {project.sponsor_agency && (
+                                        <p className="text-xs text-slate-500 font-medium mb-3">주관: {project.sponsor_agency}</p>
+                                    )}
 
                                     <div className="space-y-3 mt-auto pt-4 border-t border-slate-100">
+                                        <div className="flex items-center text-sm text-slate-600 font-medium bg-indigo-50/50 w-fit px-2 py-0.5 rounded text-indigo-700">
+                                            {project.round}차 진단
+                                        </div>
                                         <div className="flex items-center text-sm text-slate-600 font-medium">
                                             <Calendar size={15} className="mr-2.5 text-slate-400" />
                                             {project.start_date ? new Date(project.start_date).toLocaleDateString() : '미정'} ~ {project.end_date ? new Date(project.end_date).toLocaleDateString() : '미정'}
