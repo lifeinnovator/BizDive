@@ -1,6 +1,4 @@
-
-'use client'
-
+import { useState, useEffect } from 'react'
 import {
     Radar,
     RadarChart,
@@ -29,12 +27,22 @@ const DIMENSION_NAMES: Record<string, string> = {
 const SECTIONS = ['D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7'];
 
 export default function DiagnosisRadarChart({ sectionScores, previousScores }: RadarChartProps) {
+    const [mounted, setMounted] = useState(false)
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
+
     const chartData = SECTIONS.map((key) => ({
         subject: DIMENSION_NAMES[key] || key,
         A: sectionScores[key] || 0,
         B: previousScores ? (previousScores[key] || 0) : 0,
         fullMark: 100,
     }))
+
+    if (!mounted) {
+        return <div className="w-full h-[320px] bg-slate-50/50 animate-pulse rounded-xl" />
+    }
 
     return (
         <div className="w-full h-[320px]">
