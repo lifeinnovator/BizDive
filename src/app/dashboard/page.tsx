@@ -98,77 +98,85 @@ export default async function DashboardPage() {
                             const date = `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
 
                             return (
-                                <Link href={`/report/${record.id}`} key={record.id} className="block group">
-                                    <Card className="hover:shadow-md transition-all duration-200 border-gray-200 overflow-hidden">
-                                        <CardContent className="p-0">
-                                            <div className="flex items-center h-[88px]">
-                                                {/* Score Section - Compact */}
-                                                <div className={`w-[88px] h-full flex flex-col items-center justify-center border-r border-gray-100 bg-gray-50 group-hover:bg-indigo-50/30 transition-colors`}>
-                                                    <span className={`text-[22px] font-bold tracking-tight ${record.total_score >= 80 ? 'text-green-600' :
-                                                        record.total_score >= 50 ? 'text-indigo-600' : 'text-rose-500'
-                                                        }`}>
-                                                        {record.total_score.toFixed(1)}<span className="text-xs font-normal text-gray-400 ml-0.5">점</span>
-                                                    </span>
-                                                    <span className={`mt-0.5 text-[9px] px-1.5 py-0.5 rounded-full font-medium ${record.total_score >= 80 ? 'bg-green-100 text-green-700' :
-                                                        record.total_score >= 50 ? 'bg-indigo-100 text-indigo-700' : 'bg-rose-100 text-rose-700'
-                                                        }`}>
-                                                        Stage {record.stage_result}
-                                                    </span>
-                                                </div>
+                            return (
+                                <Card key={record.id} className="hover:shadow-md transition-all duration-200 border-gray-200 overflow-hidden group">
+                                    <CardContent className="p-0">
+                                        <div className="flex items-center h-[88px] relative">
+                                            {/* Main Clickable Area - Overlay Link */}
+                                            <Link
+                                                href={`/report/${record.id}`}
+                                                className="absolute inset-0 z-0"
+                                                aria-label="진단 결과 상세 보기"
+                                            />
 
-                                                {/* Content Section - Compact */}
-                                                <div className="flex-grow px-4 py-2 flex justify-between items-center">
-                                                    <div>
-                                                        <h4 className="text-[15px] font-bold text-gray-900 group-hover:text-indigo-600 transition-colors mb-0.5">
-                                                            {stageInfo.stageName}
-                                                        </h4>
-                                                        <p className="text-gray-500 text-[11px] line-clamp-1 mb-1.5">
-                                                            {stageInfo.shortDesc}
-                                                        </p>
+                                            {/* Score Section - Compact */}
+                                            <div className={`w-[88px] h-full flex flex-col items-center justify-center border-r border-gray-100 bg-gray-50 group-hover:bg-indigo-50/30 transition-colors z-10 pointer-events-none`}>
+                                                <span className={`text-[22px] font-bold tracking-tight ${record.total_score >= 80 ? 'text-green-600' :
+                                                    record.total_score >= 50 ? 'text-indigo-600' : 'text-rose-500'
+                                                    }`}>
+                                                    {record.total_score.toFixed(1)}<span className="text-xs font-normal text-gray-400 ml-0.5">점</span>
+                                                </span>
+                                                <span className={`mt-0.5 text-[9px] px-1.5 py-0.5 rounded-full font-medium ${record.total_score >= 80 ? 'bg-green-100 text-green-700' :
+                                                    record.total_score >= 50 ? 'bg-indigo-100 text-indigo-700' : 'bg-rose-100 text-rose-700'
+                                                    }`}>
+                                                    Stage {record.stage_result}
+                                                </span>
+                                            </div>
 
-                                                        {/* Metadata Row */}
-                                                        <div className="flex items-center gap-2 text-[11px] text-gray-400">
-                                                            <div className="flex items-center gap-1">
-                                                                <Building className="h-3 w-3" />
-                                                                <span className="max-w-[80px] truncate">{record.company_name || profile?.company_name || '회사명 미상'}</span>
-                                                            </div>
-                                                            <div className="w-px h-2 bg-gray-300"></div>
-                                                            <div className="flex items-center gap-1">
-                                                                <User className="h-3 w-3" />
-                                                                <span className="max-w-[60px] truncate">{profile?.user_name || '사용자'}</span>
-                                                            </div>
-                                                            <div className="w-px h-2 bg-gray-300"></div>
-                                                            <span>{date}</span>
+                                            {/* Content Section - Compact */}
+                                            <div className="flex-grow px-4 py-2 flex justify-between items-center z-10 pointer-events-none">
+                                                <div className="min-w-0 pr-4">
+                                                    <h4 className="text-[15px] font-bold text-gray-900 group-hover:text-indigo-600 transition-colors mb-0.5 truncate">
+                                                        {stageInfo.stageName}
+                                                    </h4>
+                                                    <p className="text-gray-500 text-[11px] line-clamp-1 mb-1.5">
+                                                        {stageInfo.shortDesc}
+                                                    </p>
+
+                                                    {/* Metadata Row */}
+                                                    <div className="flex items-center gap-2 text-[11px] text-gray-400">
+                                                        <div className="flex items-center gap-1">
+                                                            <Building className="h-3 w-3" />
+                                                            <span className="max-w-[80px] truncate">{record.company_name || profile?.company_name || '회사명 미상'}</span>
                                                         </div>
-                                                    </div>
-
-                                                    <div className="flex flex-col sm:flex-row sm:items-center justify-center shrink-0 ml-2 sm:ml-4 gap-2">
-                                                        <DeleteRecordButton recordId={record.id} />
-                                                        <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-indigo-400 transition-colors hidden sm:block" />
+                                                        <div className="w-px h-2 bg-gray-300"></div>
+                                                        <div className="flex items-center gap-1">
+                                                            <User className="h-3 w-3" />
+                                                            <span className="max-w-[60px] truncate">{profile?.user_name || '사용자'}</span>
+                                                        </div>
+                                                        <div className="w-px h-2 bg-gray-300"></div>
+                                                        <span>{date}</span>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </CardContent>
-                                    </Card>
-                                </Link>
+
+                                            {/* Action Section - Keep outside or on top of overlay with higher Z-index */}
+                                            <div className="flex items-center shrink-0 pr-4 gap-2 z-20">
+                                                <DeleteRecordButton recordId={record.id} />
+                                                <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-indigo-400 transition-colors hidden sm:block pointer-events-none" />
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            )
                             )
                         })
                     ) : (
-                        <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-gray-200 shadow-sm">
-                            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-indigo-50 mb-6">
-                                <Plus className="h-10 w-10 text-indigo-300" />
-                            </div>
-                            <h3 className="text-xl font-bold text-gray-900 mb-2">아직 진행된 진단이 없습니다</h3>
-                            <p className="text-gray-500 mb-8 max-w-sm mx-auto">
-                                우리 기업의 현재 상태가 궁금하신가요? <br />
-                                7가지 차원의 정밀 진단을 시작해보세요.
-                            </p>
-                            <Link href="/diagnosis">
-                                <Button className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-6 h-auto rounded-xl text-lg shadow-lg shadow-indigo-200">
-                                    첫 진단 시작하기
-                                </Button>
-                            </Link>
+                    <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-gray-200 shadow-sm">
+                        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-indigo-50 mb-6">
+                            <Plus className="h-10 w-10 text-indigo-300" />
                         </div>
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">아직 진행된 진단이 없습니다</h3>
+                        <p className="text-gray-500 mb-8 max-w-sm mx-auto">
+                            우리 기업의 현재 상태가 궁금하신가요? <br />
+                            7가지 차원의 정밀 진단을 시작해보세요.
+                        </p>
+                        <Link href="/diagnosis">
+                            <Button className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-6 h-auto rounded-xl text-lg shadow-lg shadow-indigo-200">
+                                첫 진단 시작하기
+                            </Button>
+                        </Link>
+                    </div>
                     )}
                 </div>
 
