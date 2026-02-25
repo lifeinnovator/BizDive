@@ -119,7 +119,7 @@ export default async function DashboardPage() {
                                                         <span className="text-[10px] text-gray-400 font-medium">/ 100</span>
                                                     </div>
                                                     <div className={`mt-1.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-tighter ${stageColor.bg} ${stageColor.text}`}>
-                                                        {stageInfo.stage} {stageInfo.grade}
+                                                        Stage {record.stage_result}
                                                     </div>
                                                 </div>
 
@@ -127,14 +127,14 @@ export default async function DashboardPage() {
                                                 <div className="flex-grow px-5 py-4 min-w-0 flex flex-col justify-center">
                                                     <div className="flex items-center gap-2 mb-1.5 min-w-0">
                                                         <h3 className="text-[15px] font-bold text-gray-900 group-hover/link:text-indigo-600 transition-colors truncate">
-                                                            {stageInfo.name}
+                                                            {stageInfo.stageName}
                                                         </h3>
                                                         <Badge variant="outline" className="h-5 px-1.5 text-[10px] font-medium border-gray-200 text-gray-500 whitespace-nowrap shrink-0">
                                                             ID: {record.id.split('-')[0]}
                                                         </Badge>
                                                     </div>
                                                     <p className="text-[13px] text-gray-500 line-clamp-1 mb-2">
-                                                        {stageInfo.description}
+                                                        {stageInfo.shortDesc}
                                                     </p>
 
                                                     <div className="flex items-center gap-4 text-[11px] text-gray-400 font-medium">
