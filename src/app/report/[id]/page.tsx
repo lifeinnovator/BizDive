@@ -128,7 +128,6 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
                         </Link>
                         <div className="flex flex-col">
                             <h1 className="text-[17px] font-bold text-gray-900 leading-tight flex items-center gap-2">
-                                <img src="/favicon.png" alt="BizDive" className="w-5 h-5 rounded" />
                                 상세 진단 결과
                             </h1>
                             <span className="text-xs text-slate-500 font-medium mt-0.5">
@@ -152,7 +151,6 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
                 <div className="hidden print:block mb-8 border-b pb-4">
                     <div className="flex justify-end mb-4">
                         <div className="flex items-center gap-2 text-indigo-900">
-                            <img src="/favicon.png" alt="BizDive" className="w-5 h-5 rounded" />
                             <span className="font-bold text-sm tracking-tight">BizDive</span>
                         </div>
                     </div>
