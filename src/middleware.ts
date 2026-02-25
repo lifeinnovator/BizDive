@@ -53,7 +53,7 @@ export async function middleware(request: NextRequest) {
             .single()
 
         if (!profile || (profile.role !== 'super_admin' && profile.role !== 'group_admin')) {
-            return NextResponse.redirect(new URL('/dashboard', request.url))
+            return NextResponse.redirect(new URL('/dashboard?error=admin_access_denied', request.url))
         }
     }
 

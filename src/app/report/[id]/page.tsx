@@ -30,7 +30,7 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
             .from('diagnosis_records')
             .select(`
                 *,
-                profiles!diagnosis_records_user_id_fkey (
+                profiles (
                     user_name,
                     company_name,
                     stage,
@@ -48,11 +48,16 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
     ])
 
     const { data: record, error } = recordRes
-    const { data: currentUserProfile } = currentUserRes
+    const { data: currentUserProfile, error: profileError } = currentUserRes
 
     if (error || !record) {
-        console.error("Report not found:", error)
-        return notFound()
+        console.error("Report not found or error:", error)
+        return redirect(`/dashboard?error=record_not_found&id=${id}&details=${encodeURIComponent(error?.message || 'no_record')}`)
+    }
+
+    if (profileError || !currentUserProfile) {
+        console.error("Profile fetch error:", profileError)
+        return redirect(`/dashboard?error=profile_not_found&user_id=${user.id}`)
     }
 
     // Security check: owner, super_admin, or correct group_admin
@@ -61,7 +66,8 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
             // For group_admin, check if the record's user belongs to their group
             // We already have the group_id from record.profiles (joined) and currentUserRes
             if (currentUserProfile?.role !== 'group_admin' || record.profiles?.group_id !== currentUserProfile?.group_id) {
-                return redirect('/dashboard')
+                console.error(`Access denied. Record search: ${id}, Owner: ${record.user_id}, Current: ${user.id}`)
+                return redirect(`/dashboard?error=access_denied&record_owner=${record.user_id}&current_user=${user.id}`)
             }
         }
     }
