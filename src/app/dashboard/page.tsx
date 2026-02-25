@@ -95,56 +95,71 @@ export default async function DashboardPage() {
                         records.map((record: { id: string; total_score: number; created_at: string; stage_result: string; company_name?: string; }) => {
                             const stageInfo = getStageInfo(record.total_score)
                             const d = new Date(record.created_at)
-                            const date = `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+                            const stageColor =
+                                record.total_score >= 80
+                                    ? { bg: 'bg-green-100', text: 'text-green-700' }
+                                    : record.total_score >= 50
+                                        ? { bg: 'bg-indigo-100', text: 'text-indigo-700' }
+                                        : { bg: 'bg-rose-100', text: 'text-rose-700' };
 
                             return (
                                 <Card key={record.id} className="hover:shadow-md transition-all duration-200 border-gray-200 overflow-hidden group">
                                     <CardContent className="p-0">
                                         <div className="flex items-center h-[88px]">
-                                            {/* Main Clickable Area - Wrapped anchor tag for forced reload testing */}
-                                            <a
+                                            {/* Main Clickable Area - Link for fast client-side navigation */}
+                                            <Link
                                                 href={`/report/${record.id}`}
                                                 className="flex flex-grow items-center h-full no-underline group/link overflow-hidden cursor-pointer"
                                             >
                                                 {/* Score Section - Compact */}
                                                 <div className={`w-[88px] h-full flex flex-col items-center justify-center border-r border-gray-100 bg-gray-50 group-hover:bg-indigo-50/30 transition-colors shrink-0`}>
-                                                    <span className={`text-[22px] font-bold tracking-tight ${record.total_score >= 80 ? 'text-green-600' :
-                                                        record.total_score >= 50 ? 'text-indigo-600' : 'text-rose-500'
-                                                        }`}>
-                                                        {record.total_score.toFixed(1)}<span className="text-xs font-normal text-gray-400 ml-0.5">점</span>
-                                                    </span>
-                                                    <span className={`mt-0.5 text-[9px] px-1.5 py-0.5 rounded-full font-medium ${record.total_score >= 80 ? 'bg-green-100 text-green-700' :
-                                                        record.total_score >= 50 ? 'bg-indigo-100 text-indigo-700' : 'bg-rose-100 text-rose-700'
-                                                        }`}>
-                                                        Stage {record.stage_result}
-                                                    </span>
+                                                    <div className="text-[11px] font-medium text-gray-400 mb-0.5 uppercase tracking-wide">Score</div>
+                                                    <div className="flex items-baseline gap-0.5">
+                                                        <span className="text-xl font-bold text-gray-900 leading-none">{(record.total_score || 0).toFixed(1)}</span>
+                                                        <span className="text-[10px] text-gray-400 font-medium">/ 100</span>
+                                                    </div>
+                                                    <div className={`mt-1.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-tighter ${stageColor.bg} ${stageColor.text}`}>
+                                                        {stageInfo.stage} {stageInfo.grade}
+                                                    </div>
                                                 </div>
-                                                {/* Content Section - Compact */}
-                                                <div className="flex-grow px-4 py-2 flex justify-between items-center min-w-0">
-                                                    <div className="min-w-0 pr-4">
-                                                        <h4 className="text-[15px] font-bold text-gray-900 group-hover:text-indigo-600 transition-colors mb-0.5 truncate">
-                                                            {stageInfo.stageName}
-                                                        </h4>
-                                                        <p className="text-gray-500 text-[11px] line-clamp-1 mb-1.5">
-                                                            {stageInfo.shortDesc}
-                                                        </p>
-                                                        {/* Metadata Row */}
-                                                        <div className="flex items-center gap-2 text-[11px] text-gray-400">
-                                                            <div className="flex items-center gap-1">
-                                                                <Building className="h-3 w-3" />
-                                                                <span className="max-w-[80px] truncate">{record.company_name || profile?.company_name || '회사명 미상'}</span>
-                                                            </div>
-                                                            <div className="w-px h-2 bg-gray-300"></div>
-                                                            <div className="flex items-center gap-1">
-                                                                <User className="h-3 w-3" />
-                                                                <span className="max-w-[60px] truncate">{profile?.user_name || '사용자'}</span>
-                                                            </div>
-                                                            <div className="w-px h-2 bg-gray-300"></div>
-                                                            <span>{date}</span>
+
+                                                {/* Content Section - Main info */}
+                                                <div className="flex-grow px-5 py-4 min-w-0 flex flex-col justify-center">
+                                                    <div className="flex items-center gap-2 mb-1.5 min-w-0">
+                                                        <h3 className="text-[15px] font-bold text-gray-900 group-hover/link:text-indigo-600 transition-colors truncate">
+                                                            {stageInfo.name}
+                                                        </h3>
+                                                        <Badge variant="outline" className="h-5 px-1.5 text-[10px] font-medium border-gray-200 text-gray-500 whitespace-nowrap shrink-0">
+                                                            ID: {record.id.split('-')[0]}
+                                                        </Badge>
+                                                    </div>
+                                                    <p className="text-[13px] text-gray-500 line-clamp-1 mb-2">
+                                                        {stageInfo.description}
+                                                    </p>
+
+                                                    <div className="flex items-center gap-4 text-[11px] text-gray-400 font-medium">
+                                                        <div className="flex items-center gap-1">
+                                                            <Building className="w-3 h-3" />
+                                                            <span>{profile?.company_name || '회사 정보 없음'}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-1 border-l border-gray-100 pl-4 text-gray-300">
+                                                            <User className="w-3 h-3" />
+                                                            <span>{profile?.user_name || '사용자'}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-1 border-l border-gray-100 pl-4">
+                                                            <Calendar className="w-3 h-3" />
+                                                            <span>{new Date(record.created_at).toLocaleDateString()} {new Date(record.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </a>
+
+                                                {/* Action/Chevron Section */}
+                                                <div className="px-5 shrink-0">
+                                                    <div className="w-8 h-8 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gray-300 group-hover/link:border-indigo-200 group-hover/link:text-indigo-500 group-hover/link:shadow-sm transition-all">
+                                                        <ChevronRight className="w-4 h-4" />
+                                                    </div>
+                                                </div>
+                                            </Link>
 
                                             {/* Action Section - Outside the Link to avoid nesting interactive elements */}
                                             <div className="flex items-center shrink-0 pr-4 gap-2 border-l border-gray-50 h-full bg-white z-20">
