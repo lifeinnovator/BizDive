@@ -54,8 +54,16 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
     const { data: currentUserProfile } = currentUserRes
 
     if (error || !record) {
-        console.error("Report not found:", error)
-        return notFound()
+        // console.error("Report not found:", error)
+        // return notFound()
+        return (
+            <div className="p-20 bg-red-50 text-[10px] font-mono whitespace-pre">
+                ERROR: {JSON.stringify(error, null, 2)}
+                RECORD FOUND: {String(!!record)}
+                USER_ID: {user?.id}
+                QUERY_ID: {id}
+            </div>
+        )
     }
 
     // Handle profiles join result which can be an array or a single object
