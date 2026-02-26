@@ -71,31 +71,7 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
             if (currentUserProfile?.role !== 'super_admin') {
                 if (currentUserProfile?.role !== 'group_admin' || profile?.group_id !== currentUserProfile?.group_id) {
                     console.error("Access denied for user:", user.id, "record owner:", record.user_id);
-                    return (
-                        <div style={{ padding: '40px', fontFamily: 'monospace', fontSize: '14px', background: '#fffff0', color: '#333', minHeight: '100vh' }}>
-                            <h1 style={{ color: '#d97706', marginBottom: '20px', borderBottom: '2px solid #d97706', paddingBottom: '10px' }}>ACCESS DENIED - VERCEL DEBUG</h1>
-                            <div style={{ background: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
-                                <p style={{ margin: '8px 0' }}><strong>recordUserId (from DB):</strong> {String(recordUserId)}</p>
-                                <p style={{ margin: '8px 0' }}><strong>currentUserId (from Session):</strong> {String(currentUserId)}</p>
-                                <p style={{ margin: '8px 0' }}><strong>isOwner (Strict Equality):</strong> {String(isOwner)}</p>
-                                <hr style={{ margin: '20px 0', border: 'none', borderTop: '1px solid #eee' }} />
-                                <p style={{ margin: '8px 0' }}><strong>currentUserProfile.role:</strong> {String(currentUserProfile?.role)}</p>
-                                <p style={{ margin: '8px 0' }}><strong>currentUserProfile.group_id:</strong> {String(currentUserProfile?.group_id)}</p>
-                                <p style={{ margin: '8px 0' }}><strong>record profile.group_id:</strong> {String(profile?.group_id)}</p>
-                                <hr style={{ margin: '20px 0', border: 'none', borderTop: '1px solid #eee' }} />
-                                <p style={{ margin: '8px 0', fontWeight: 'bold' }}>Session User Object (Partial):</p>
-                                <pre style={{ background: '#f8fafc', padding: '15px', borderRadius: '5px', overflowX: 'auto', fontSize: '12px' }}>
-                                    {JSON.stringify({
-                                        id: user.id,
-                                        aud: user.aud,
-                                        role: user.role,
-                                        email: user.email,
-                                        last_sign_in_at: user.last_sign_in_at
-                                    }, null, 2)}
-                                </pre>
-                            </div>
-                        </div>
-                    )
+                    return redirect('/dashboard')
                 }
             }
         }
