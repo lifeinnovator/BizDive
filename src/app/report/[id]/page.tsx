@@ -17,9 +17,6 @@ interface ReportPageProps {
 }
 
 export default async function DynamicReportPage({ params }: ReportPageProps) {
-    // TEST: Is this page even being reached?
-    // return redirect('/login') 
-
     const { id } = await params
     const supabase = await createClient()
 
@@ -54,16 +51,8 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
     const { data: currentUserProfile } = currentUserRes
 
     if (error || !record) {
-        // console.error("Report not found:", error)
-        // return notFound()
-        return (
-            <div className="p-20 bg-red-50 text-[10px] font-mono whitespace-pre">
-                ERROR: {JSON.stringify(error, null, 2)}
-                RECORD FOUND: {String(!!record)}
-                USER_ID: {user?.id}
-                QUERY_ID: {id}
-            </div>
-        )
+        console.error("Report not found:", error)
+        return notFound()
     }
 
     // Handle profiles join result which can be an array or a single object
@@ -74,13 +63,11 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
     const currentUserId = user.id?.toString().toLowerCase();
     const isOwner = recordUserId === currentUserId;
     
-    // DEBUG: Always allow and log for now
     if (!isOwner) {
         if (currentUserProfile?.role !== 'super_admin') {
-            // For group_admin, check if the record's user belongs to their group
             if (currentUserProfile?.role !== 'group_admin' || profile?.group_id !== currentUserProfile?.group_id) {
-                console.log("DEBUG: Access would be denied. Record owner:", record.user_id, "Current user:", user.id);
-                // return redirect('/dashboard') // TEMPORARILY DISABLED FOR DEBUGGING
+                console.error("Access denied for user:", user.id, "record owner:", record.user_id);
+                return redirect('/dashboard')
             }
         }
     }
@@ -96,7 +83,7 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
             .limit(1)
             .maybeSingle(),
         getDiagnosisQuestions({
-            stage: profile?.stage || 'P', // Provide defaults if profile is missing
+            stage: profile?.stage || 'P',
             industry: profile?.industry || 'I'
         })
     ])
@@ -130,17 +117,6 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
 
     return (
         <div className="min-h-screen bg-gray-50 pb-12 print:bg-white print:pb-0">
-            {/* DEBUG INFO */}
-            <div className="bg-red-50 p-4 border-b border-red-200 text-[10px] font-mono whitespace-pre overflow-auto max-h-40 print:hidden">
-                DEBUG: 
-                recordUserId:  {recordUserId}
-                currentUserId: {currentUserId}
-                match:         {String(isOwner)}
-                id_from_url:   {id}
-                profiles_result: {JSON.stringify(record.profiles, null, 2)}
-                role:          {currentUserProfile?.role}
-            </div>
-
             {/* Header - Hidden on Print */}
             <header className="bg-white border-b sticky top-0 z-50 print:hidden">
                 <div className="max-w-7xl mx-auto h-16 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
