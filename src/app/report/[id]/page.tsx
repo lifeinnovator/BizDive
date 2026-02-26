@@ -17,6 +17,9 @@ interface ReportPageProps {
 }
 
 export default async function DynamicReportPage({ params }: ReportPageProps) {
+    // TEST: Is this page even being reached?
+    return redirect('/login') 
+
     const { id } = await params
     const supabase = await createClient()
 
