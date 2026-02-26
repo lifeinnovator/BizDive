@@ -59,10 +59,15 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
     const profile = Array.isArray(record.profiles) ? record.profiles[0] : record.profiles;
 
     // Security check: owner, super_admin, or correct group_admin
-    if (record.user_id !== user.id) {
+    const recordUserId = record.user_id?.toString().toLowerCase();
+    const currentUserId = user.id?.toString().toLowerCase();
+    const isOwner = recordUserId === currentUserId;
+    
+    if (!isOwner) {
         if (currentUserProfile?.role !== 'super_admin') {
             // For group_admin, check if the record's user belongs to their group
             if (currentUserProfile?.role !== 'group_admin' || profile?.group_id !== currentUserProfile?.group_id) {
+                console.error("Access denied for user:", user.id, "record owner:", record.user_id);
                 return redirect('/dashboard')
             }
         }
@@ -79,8 +84,8 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
             .limit(1)
             .maybeSingle(),
         getDiagnosisQuestions({
-            stage: profile.stage,
-            industry: profile.industry
+            stage: profile?.stage || 'P', // Provide defaults if profile is missing
+            industry: profile?.industry || 'I'
         })
     ])
 
