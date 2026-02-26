@@ -29,12 +29,7 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
         supabase
             .from('diagnosis_records')
             .select(`
-                user_id,
-                total_score,
-                created_at,
-                company_name,
-                stage_result,
-                dimension_scores,
+                *,
                 profiles (
                     user_name,
                     company_name,
@@ -60,18 +55,18 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
         return notFound()
     }
 
+    // Handle profiles join result which can be an array or a single object
+    const profile = Array.isArray(record.profiles) ? record.profiles[0] : record.profiles;
+
     // Security check: owner, super_admin, or correct group_admin
     if (record.user_id !== user.id) {
         if (currentUserProfile?.role !== 'super_admin') {
             // For group_admin, check if the record's user belongs to their group
-            // We already have the group_id from record.profiles (joined) and currentUserRes
-            if (currentUserProfile?.role !== 'group_admin' || record.profiles?.group_id !== currentUserProfile?.group_id) {
+            if (currentUserProfile?.role !== 'group_admin' || profile?.group_id !== currentUserProfile?.group_id) {
                 return redirect('/dashboard')
             }
         }
     }
-
-    const profile = record.profiles;
 
     // 3. Fetch previous record and questions in parallel
     const [previousRes, questions] = await Promise.all([
