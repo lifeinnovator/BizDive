@@ -112,8 +112,8 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
         I: 'IT/SaaS', H: '제조/소재/HW', L: '서비스/F&B/로컬', CT: '콘텐츠/IP/지식서비스'
     }
 
-    const profileStageLabel = STAGE_LABELS[profile.stage] || profile.stage
-    const profileIndustryLabel = INDUSTRY_LABELS[profile.industry] || profile.industry
+    const profileStageLabel = STAGE_LABELS[profile?.stage] || profile?.stage || '미설정'
+    const profileIndustryLabel = INDUSTRY_LABELS[profile?.industry] || profile?.industry || '미설정'
 
     return (
         <div className="min-h-screen bg-gray-50 pb-12 print:bg-white print:pb-0">
