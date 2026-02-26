@@ -52,8 +52,14 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
     const { data: currentUserProfile } = currentUserRes
 
     if (error || !record) {
-        console.error("Report not found:", error)
-        return notFound()
+        return (
+            <div style={{ padding: '40px', fontFamily: 'monospace', fontSize: '12px', background: '#fff0f0' }}>
+                <h1 style={{ color: 'red' }}>RECORD NOT FOUND</h1>
+                <pre>Error: {JSON.stringify(error, null, 2)}</pre>
+                <pre>User ID: {user?.id}</pre>
+                <pre>Query ID: {id}</pre>
+            </div>
+        )
     }
 
     // Handle profiles join result which can be an array or a single object
@@ -67,8 +73,18 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
     if (!isOwner) {
         if (currentUserProfile?.role !== 'super_admin') {
             if (currentUserProfile?.role !== 'group_admin' || profile?.group_id !== currentUserProfile?.group_id) {
-                console.error("Access denied for user:", user.id, "record owner:", record.user_id);
-                return redirect('/dashboard')
+                return (
+                    <div style={{ padding: '40px', fontFamily: 'monospace', fontSize: '12px', background: '#fffff0' }}>
+                        <h1 style={{ color: 'orange' }}>ACCESS DENIED - DEBUG</h1>
+                        <pre>recordUserId: {recordUserId}</pre>
+                        <pre>currentUserId: {currentUserId}</pre>
+                        <pre>isOwner: {String(isOwner)}</pre>
+                        <pre>role: {currentUserProfile?.role}</pre>
+                        <pre>record.user_id (raw): {String(record.user_id)}</pre>
+                        <pre>user.id (raw): {String(user?.id)}</pre>
+                        <pre>profile: {JSON.stringify(profile, null, 2)}</pre>
+                    </div>
+                )
             }
         }
     }
