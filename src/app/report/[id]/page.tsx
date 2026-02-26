@@ -17,6 +17,7 @@ interface ReportPageProps {
 }
 
 export default async function DynamicReportPage({ params }: ReportPageProps) {
+  try {
     const { id } = await params
     const supabase = await createClient()
 
@@ -338,4 +339,13 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
             </main>
         </div>
     )
+  } catch (err: any) {
+    return (
+      <div style={{ padding: '40px', fontFamily: 'monospace', fontSize: '12px', background: '#fff0f0' }}>
+        <h1 style={{ color: 'red' }}>RENDER ERROR CAUGHT</h1>
+        <pre>{err?.message}</pre>
+        <pre>{err?.stack}</pre>
+      </div>
+    )
+  }
 }
