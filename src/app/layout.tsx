@@ -39,7 +39,7 @@ export default function RootLayout({
         {children}
         <Toaster position="top-center" richColors />
         <div className="fixed bottom-1 right-1 text-[10px] text-gray-300 pointer-events-none z-50">
-          v2.1.1-debug
+          v2.1.0
         </div>
       </body>
     </html>
