@@ -29,8 +29,13 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
         supabase
             .from('diagnosis_records')
             .select(`
-                *,
-                profiles!diagnosis_records_user_id_fkey (
+                user_id,
+                total_score,
+                created_at,
+                company_name,
+                stage_result,
+                dimension_scores,
+                profiles (
                     user_name,
                     company_name,
                     stage,
