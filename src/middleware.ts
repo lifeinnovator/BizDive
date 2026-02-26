@@ -43,7 +43,7 @@ export async function middleware(request: NextRequest) {
     // 1. Protect /admin routes
     if (request.nextUrl.pathname.startsWith('/admin')) {
         if (!user) {
-            return NextResponse.redirect(new URL('/login', request.url))
+            return NextResponse.redirect(new URL('/login?from=middleware_admin_auth', request.url))
         }
 
         const { data: profile } = await supabase
@@ -53,7 +53,7 @@ export async function middleware(request: NextRequest) {
             .single()
 
         if (!profile || (profile.role !== 'super_admin' && profile.role !== 'group_admin')) {
-            return NextResponse.redirect(new URL('/dashboard', request.url))
+            return NextResponse.redirect(new URL('/dashboard?from=middleware_admin_role', request.url))
         }
     }
 
@@ -63,7 +63,7 @@ export async function middleware(request: NextRequest) {
     if (pathname.startsWith('/dashboard') ||
         (pathname.startsWith('/report') && !pathname.startsWith('/report/preview'))) {
         if (!user) {
-            return NextResponse.redirect(new URL('/login', request.url))
+            return NextResponse.redirect(new URL('/login?from=middleware_auth_check', request.url))
         }
     }
 
