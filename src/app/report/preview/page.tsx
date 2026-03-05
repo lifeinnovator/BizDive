@@ -210,9 +210,9 @@ export default function ReportPreviewPage() {
                             <ArrowLeft className="h-5 w-5 text-slate-600" />
                         </button>
                         <Link href="/" className="flex flex-col hover:opacity-80 transition-opacity">
-                            <h1 className="text-[17px] font-bold text-slate-900 leading-tight flex items-center gap-2">
-                                <img src="/favicon.png" alt="BizDive" className="w-5 h-5 rounded" />
-                                BizDive - 상세 진단 결과
+                            <h1 className="text-[16px] sm:text-[17px] font-bold text-slate-900 leading-tight flex items-center gap-2 sm:gap-3">
+                                <img src="/BizDive_Logo_FINAL.png" alt="BizDive" className="h-8 sm:h-10 w-auto mix-blend-multiply" />
+                                <span className="border-l border-gray-300 pl-2 sm:pl-3">상세 진단 결과</span>
                             </h1>
                             <span className="text-[11px] text-slate-400 font-medium mt-0.5">
                                 {profile.company_name} | {profile.user_name} | {new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}

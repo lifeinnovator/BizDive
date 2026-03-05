@@ -42,13 +42,13 @@ export default async function DashboardPage() {
             {/* Header */}
             <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0 pr-2 hover:opacity-80 transition-opacity">
-                        <img src="/favicon.png" alt="BizDive" className="w-10 h-10 sm:w-11 sm:h-11 rounded-lg flex-shrink-0" />
-                        <div className="flex flex-col min-w-0">
-                            <h1 className="text-[15.5px] sm:text-[18px] font-bold text-gray-900 leading-tight truncate">
-                                BizDive - 7D 기업경영 심층자가진단
-                            </h1>
-                            <span className="text-[11.5px] sm:text-[13px] text-gray-500 font-medium truncate">
+                    <Link href="/" className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0 pr-2 hover:opacity-80 transition-opacity">
+                        <img src="/BizDive_Logo_FINAL.png" alt="BizDive" className="h-10 sm:h-12 w-auto flex-shrink-0 mix-blend-multiply" />
+                        <div className="flex flex-col min-w-0 border-l border-gray-200 pl-3">
+                            <span className="text-[12px] sm:text-[13px] font-semibold text-gray-500 truncate leading-tight mb-0.5">
+                                7D 기업경영 심층자가진단
+                            </span>
+                            <span className="text-[11px] sm:text-[12px] text-gray-400 font-medium truncate leading-none">
                                 {user.email}
                             </span>
                         </div>

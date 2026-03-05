@@ -137,9 +137,9 @@ export default function OnboardingPage() {
                 </Button>
 
                 <div className="flex flex-col items-center">
-                    <div className="relative w-64 h-20 mb-0">
+                    <div className="relative w-72 h-24 mb-2">
                         <Image
-                            src="/logo_full.png"
+                            src="/BizDive_Logo_v3.png"
                             alt="BizDive"
                             fill
                             className="object-contain"
@@ -155,21 +155,6 @@ export default function OnboardingPage() {
             <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
                 <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
                     <form className="space-y-6" onSubmit={handleSubmit}>
-                        {/* Name/Email Readonly for Guest (Displayed for context) */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-500">이름</label>
-                                <div className="mt-1 p-2 bg-gray-100 rounded-md text-sm text-gray-700">
-                                    {formData.user_name || '-'}
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-500">이메일</label>
-                                <div className="mt-1 p-2 bg-gray-100 rounded-md text-sm text-gray-700 truncate">
-                                    {formData.email || '-'}
-                                </div>
-                            </div>
-                        </div>
 
                         <div>
                             <label htmlFor="company_name" className="block text-sm font-medium text-gray-700">

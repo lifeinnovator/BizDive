@@ -79,142 +79,78 @@ export default function LoginPage() {
                 <CardHeader>
                     <Link href="/" className="hover:opacity-80 transition-opacity flex justify-center">
                         <img
-                            src="/og-image.png"
+                            src="/BizDive_Logo_FINAL.png"
                             alt="BizDive Logo"
-                            className="w-[240px] mb-2"
+                            className="h-16 sm:h-20 w-auto mb-6 mix-blend-multiply"
                             onError={(e) => (e.currentTarget.style.display = 'none')}
                         />
                     </Link>
                     <div className="text-center">
                         <CardTitle className="text-xl font-bold text-foreground">
-                            {mode === 'guest' ? '기업경영 자가진단 시작' : '7D 기업경영 심층자가진단'}
+                            7D 기업경영 심층자가진단
                         </CardTitle>
                         <CardDescription className="mt-1 text-sm text-muted-foreground">
-                            {mode === 'guest'
-                                ? '진단을 위해 기본 정보를 입력해주세요.'
-                                : '7차원 입체적 기업 분석을 시작합니다.'}
+                            7차원 입체적 기업 분석을 시작합니다.
                         </CardDescription>
                     </div>
                 </CardHeader>
 
                 <CardContent className="space-y-6 pt-4">
-                    {/* Mode Toggle Tabs */}
-                    <div className="flex bg-slate-100 p-1 rounded-xl">
-                        <button
-                            onClick={() => { setMode('login'); setError(null); }}
-                            className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${mode === 'login' ? 'bg-white text-indigo-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                        >
-                            회원 로그인
-                        </button>
-                        <button
-                            onClick={() => { setMode('guest'); setError(null); }}
-                            className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${mode === 'guest' ? 'bg-white text-indigo-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                        >
-                            비회원 진단
-                        </button>
-                    </div>
-                    {mode === 'guest' ? (
-                        /* GUEST START FORM */
-                        <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                            <div className="relative">
-                                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    type="text"
-                                    placeholder="이름 (Name)"
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
-                                    className="pl-10 h-11"
-                                    onKeyDown={(e) => e.key === 'Enter' && handleGuestStart()}
-                                />
-                            </div>
-                            <div className="relative">
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    type="email"
-                                    placeholder="이메일 (Email)"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="pl-10 h-11"
-                                    onKeyDown={(e) => e.key === 'Enter' && handleGuestStart()}
-                                />
-                            </div>
-
-                            {error && (
-                                <div className="flex items-center gap-2 text-destructive text-sm bg-destructive/10 p-3 rounded-lg">
-                                    <AlertCircle className="h-4 w-4 flex-shrink-0" />
-                                    <span>{error}</span>
-                                </div>
-                            )}
-
-                            <Button
-                                onClick={handleGuestStart}
-                                className="w-full bg-gradient-primary text-primary-foreground text-lg h-12 shadow-soft hover:opacity-90 transition-opacity"
-                            >
-                                무료 진단 시작하기
-                                <ArrowRight className="ml-2 h-5 w-5" />
-                            </Button>
-
-
-                        </div>
-                    ) : (
-                        /* LOGIN FORM */
-                        <div className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-300">
-                            <div className="relative">
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    type="email"
-                                    placeholder="이메일"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="pl-10 h-11"
-                                    onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-                                    disabled={loading}
-                                />
-                            </div>
-                            <div className="relative">
-                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    type={showPassword ? 'text' : 'password'}
-                                    placeholder="비밀번호"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="pl-10 pr-10 h-11"
-                                    onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-                                    disabled={loading}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
-                                    tabIndex={-1}
-                                >
-                                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                </button>
-                            </div>
-
-                            {error && (
-                                <div className="flex items-center gap-2 text-destructive text-sm bg-destructive/10 p-3 rounded-lg">
-                                    <AlertCircle className="h-4 w-4 flex-shrink-0" />
-                                    <span>{error}</span>
-                                </div>
-                            )}
-
-                            <Button
-                                onClick={handleLogin}
-                                className="w-full bg-gradient-primary text-primary-foreground shadow-soft hover:opacity-90 transition-opacity h-12"
+                    {/* LOGIN FORM */}
+                    <div className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-300">
+                        <div className="relative">
+                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                type="email"
+                                placeholder="이메일"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="pl-10 h-11"
+                                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
                                 disabled={loading}
-                            >
-                                {loading ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        로그인 중...
-                                    </>
-                                ) : '로그인'}
-                            </Button>
-
-
+                            />
                         </div>
-                    )}
+                        <div className="relative">
+                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                type={showPassword ? 'text' : 'password'}
+                                placeholder="비밀번호"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="pl-10 pr-10 h-11"
+                                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                                disabled={loading}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
+                                tabIndex={-1}
+                            >
+                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </button>
+                        </div>
+
+                        {error && (
+                            <div className="flex items-center gap-2 text-destructive text-sm bg-destructive/10 p-3 rounded-lg">
+                                <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                                <span>{error}</span>
+                            </div>
+                        )}
+
+                        <Button
+                            onClick={handleLogin}
+                            className="w-full bg-gradient-primary text-primary-foreground shadow-soft hover:opacity-90 transition-opacity h-12"
+                            disabled={loading}
+                        >
+                            {loading ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    로그인 중...
+                                </>
+                            ) : '로그인'}
+                        </Button>
+                    </div>
                 </CardContent>
             </Card>
         </div >

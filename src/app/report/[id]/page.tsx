@@ -147,9 +147,9 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
                                 <ArrowLeft className="h-5 w-5 text-slate-600" />
                             </Link>
                             <Link href="/" className="flex flex-col hover:opacity-80 transition-opacity">
-                                <h1 className="text-[17px] font-bold text-gray-900 leading-tight flex items-center gap-2">
-                                    <img src="/favicon.png" alt="BizDive" className="w-5 h-5 rounded" />
-                                    상세 진단 결과
+                                <h1 className="text-[16px] sm:text-[17px] font-bold text-gray-900 leading-tight flex items-center gap-2 sm:gap-3">
+                                    <img src="/BizDive_Logo_FINAL.png" alt="BizDive" className="h-8 sm:h-10 w-auto mix-blend-multiply" />
+                                    <span className="border-l border-gray-300 pl-2 sm:pl-3">상세 진단 결과</span>
                                 </h1>
                                 <span className="text-xs text-slate-500 font-medium mt-0.5">
                                     {record.company_name || profile?.company_name || '회사명 미상'} | {profile?.user_name || '사용자'} | {new Date(record.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
@@ -171,10 +171,7 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
                     {/* Print Only Header */}
                     <div className="hidden print:block mb-8 border-b pb-4">
                         <div className="flex justify-end mb-4">
-                            <div className="flex items-center gap-2 text-indigo-900">
-                                <img src="/favicon.png" alt="BizDive" className="w-5 h-5 rounded" />
-                                <span className="font-bold text-sm tracking-tight">BizDive</span>
-                            </div>
+                            <img src="/BizDive_Logo_Clean.png" alt="BizDive" className="h-5 w-auto" />
                         </div>
                         <div className="text-center">
                             <h1 className="text-3xl font-bold text-slate-900 tracking-tight">BizDive 기업경영 심층진단 리포트</h1>

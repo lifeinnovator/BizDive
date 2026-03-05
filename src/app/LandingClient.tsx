@@ -19,18 +19,21 @@ const NavigationBar = () => {
         <motion.nav
             className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 border-b ${scrolled ? 'bg-white/95 backdrop-blur-md border-slate-200 py-4 shadow-sm' : 'bg-transparent border-transparent py-6'}`}
         >
-            <div className="container mx-auto px-6 md:px-12 flex justify-between items-center max-w-7xl">
-                <Link href="/" className="flex items-center gap-2 text-2xl font-bold tracking-tighter text-indigo-950">
-                    <img src="/favicon.png" alt="BizDive" className="w-6 h-6 rounded border border-indigo-100 shadow-sm" />
-                    BizDive.
+            <div className="container mx-auto px-2 md:px-4 flex justify-between items-center max-w-7xl">
+                <Link href="/" className="flex items-center gap-2">
+                    <img
+                        src="/BizDive_Logo_FINAL.png"
+                        alt="BizDive"
+                        className="h-10 sm:h-14 w-auto mix-blend-multiply"
+                    />
                 </Link>
                 <div className="flex items-center gap-6">
                     <Link href="/login" className="text-[15px] font-bold text-slate-500 hover:text-indigo-900 transition-colors hidden sm:block">
-                        로그인
+                        회원로그인
                     </Link>
                     <Link href="/onboarding">
                         <Button className="rounded-none bg-indigo-900 hover:bg-indigo-800 text-white font-bold px-7 h-11 tracking-tight">
-                            시작하기
+                            무료 진단 시작
                         </Button>
                     </Link>
                 </div>
@@ -50,11 +53,11 @@ const Hero = () => {
             >
                 <div className="flex items-center justify-center gap-2 mb-6">
                     <span className="bg-indigo-50 text-indigo-600 px-4 py-1.5 rounded-full text-sm font-bold tracking-tight border border-indigo-100 flex items-center gap-2 shadow-sm">
-                        <img src="/favicon.png" alt="BizDive" className="w-4 h-4 opacity-80 mix-blend-multiply" />
+                        <img src="/favicon.png" alt="" className="w-4 h-4 opacity-80" />
                         BizDive - 7D 기업경영 심층자가진단
                     </span>
                 </div>
-                <h1 className="text-[40px] sm:text-[64px] lg:text-[94px] font-extrabold tracking-tighter text-indigo-950 leading-[1.1] mb-8 break-keep">
+                <h1 className="text-[32px] sm:text-[48px] lg:text-[76px] font-extrabold tracking-tighter text-indigo-950 leading-[1.1] mb-8 break-keep">
                     직관을 넘어, <br />
                     데이터로 증명하는 <br />
                     비즈니스 경쟁력.
@@ -72,7 +75,7 @@ const Hero = () => {
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                     <Link href="/onboarding" className="w-full sm:w-auto">
                         <Button className="h-14 px-10 rounded-none bg-indigo-900 hover:bg-indigo-800 text-white text-[17px] font-bold w-full sm:w-auto flex items-center gap-2 group transition-all shadow-md">
-                            진단 시작하기
+                            무료 진단 시작하기
                             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                         </Button>
                     </Link>
@@ -114,9 +117,9 @@ const UserPathSelection = () => {
                                 7단계 핵심 지표 정밀 분석과 맞춤형 액션 플랜 리포트를 통해 비즈니스의 현재를 확인하세요.
                             </p>
                         </div>
-                        <Link href="/onboarding" className="mt-auto">
-                            <Button className="font-bold bg-indigo-900 hover:bg-indigo-800 text-white h-12 px-6 w-full sm:w-auto mt-4 rounded-none shadow-sm">
-                                5분 만에 진단 시작
+                        <Link href="/onboarding" className="w-full">
+                            <Button className="w-full mt-6 bg-indigo-900 hover:bg-indigo-800 text-white font-bold h-12 rounded-none transition-colors border border-indigo-900 group-hover:border-indigo-800">
+                                7D 기업경영 심층자가진단 시작
                             </Button>
                         </Link>
                     </motion.div>
@@ -142,9 +145,12 @@ const UserPathSelection = () => {
                         </div>
                         <Link href="/admin/demo" className="mt-auto">
                             <Button variant="outline" className="font-bold border-slate-300 text-slate-700 hover:bg-slate-50 hover:text-slate-900 h-12 px-6 w-full sm:w-auto mt-4 rounded-none">
-                                관리자 데모 체험하기
+                                관리자 데모 체험하기 (PC전용)
                             </Button>
                         </Link>
+                        <p className="text-[12px] text-slate-400 mt-3 font-medium">
+                            * PC 환경에서의 작업에 최적화되어 있습니다.
+                        </p>
                     </motion.div>
                 </div>
             </div>
@@ -207,28 +213,62 @@ const InstitutionExperience = () => {
             <div className="sticky top-0 h-screen flex flex-col md:flex-row items-center justify-center overflow-hidden px-6 md:px-12 max-w-7xl mx-auto">
 
                 {/* Text Content Left */}
-                <div className="w-full md:w-5/12 z-10 space-y-24 py-20 relative h-full flex flex-col justify-center">
-                    <motion.div style={{ opacity: useTransform(scrollYProgress, [0, 0.1, 0.3], [1, 1, 0]) }} className="absolute">
+                <div className="w-full md:w-5/12 z-10 py-20 relative h-[400px] flex flex-col justify-center">
+                    {/* Fixed Header */}
+                    <div className="absolute top-0 left-0 pt-10">
                         <div className="inline-flex items-center gap-3 mb-6">
                             <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-full text-[12px] font-bold tracking-[0.15em] uppercase">For Institutions</span>
                             <span className="text-sm font-bold text-slate-400">관리가 필요한 지원 기관 전용</span>
                         </div>
-                        <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-6 leading-tight">지원사업 효과의<br />정량적 지표화.</h2>
-                        <p className="text-slate-400 font-medium text-lg leading-relaxed max-w-md">
+                    </div>
+
+                    {/* Phase 01: Emerald */}
+                    <motion.div
+                        style={{
+                            opacity: useTransform(scrollYProgress, [0, 0.1, 0.25], [1, 1, 0]),
+                            y: useTransform(scrollYProgress, [0, 0.1, 0.25], [0, 0, -20])
+                        }}
+                        className="absolute inset-x-0"
+                    >
+                        <div className="flex items-start gap-4 mb-4">
+                            <span className="text-emerald-500 font-mono text-xl font-bold mt-1">01</span>
+                            <h2 className="text-4xl md:text-5xl font-bold tracking-tighter leading-tight text-white">지원사업 효과의<br />정량적 지표화.</h2>
+                        </div>
+                        <p className="text-slate-400 font-medium text-lg leading-relaxed max-w-md pl-9">
                             지원사업 전후의 기업 경영 상황 변화를 객관적인 점수로 비교 분석합니다. 이를 통해 지원사업의 실제 성과를 정량적 지표로 명확하게 제시할 수 있습니다.
                         </p>
                     </motion.div>
 
-                    <motion.div style={{ opacity: useTransform(scrollYProgress, [0.35, 0.45, 0.65], [0, 1, 0]) }} className="absolute pointer-events-none">
-                        <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-6 leading-tight">단계별 진단과<br />맞춤형 보완 가이드.</h2>
-                        <p className="text-slate-400 font-medium text-lg leading-relaxed max-w-md">
+                    {/* Phase 02: Sky */}
+                    <motion.div
+                        style={{
+                            opacity: useTransform(scrollYProgress, [0.3, 0.45, 0.6], [0, 1, 0]),
+                            y: useTransform(scrollYProgress, [0.3, 0.45, 0.6], [20, 0, -20])
+                        }}
+                        className="absolute inset-x-0 pointer-events-none"
+                    >
+                        <div className="flex items-start gap-4 mb-4">
+                            <span className="text-sky-400 font-mono text-xl font-bold mt-1">02</span>
+                            <h2 className="text-4xl md:text-5xl font-bold tracking-tighter leading-tight text-white">단계별 진단과<br />맞춤형 보완 가이드.</h2>
+                        </div>
+                        <p className="text-slate-400 font-medium text-lg leading-relaxed max-w-md pl-9">
                             차수별 연속 진단을 통해 개별 기업의 핵심 경쟁 요인과 부족한 부분을 도출하고, 이를 즉각 보완할 수 있는 실질적인 가이드를 제공합니다.
                         </p>
                     </motion.div>
 
-                    <motion.div style={{ opacity: useTransform(scrollYProgress, [0.65, 0.8, 1], [0, 1, 1]) }} className="absolute pointer-events-none">
-                        <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-6 leading-tight">지원사업별 <br />간편한 통합 관리.</h2>
-                        <p className="text-slate-400 font-medium text-lg leading-relaxed max-w-md">
+                    {/* Phase 03: Indigo */}
+                    <motion.div
+                        style={{
+                            opacity: useTransform(scrollYProgress, [0.65, 0.8, 1], [0, 1, 1]),
+                            y: useTransform(scrollYProgress, [0.65, 0.8, 1], [20, 0, 0])
+                        }}
+                        className="absolute inset-x-0 pointer-events-none"
+                    >
+                        <div className="flex items-start gap-4 mb-4">
+                            <span className="text-indigo-400 font-mono text-xl font-bold mt-1">03</span>
+                            <h2 className="text-4xl md:text-5xl font-bold tracking-tighter leading-tight text-white">지원사업별 <br />간편한 통합 관리.</h2>
+                        </div>
+                        <p className="text-slate-400 font-medium text-lg leading-relaxed max-w-md pl-9">
                             다수의 지원사업과 참가 기업들의 진단 및 실행 현황을 하나의 대시보드에서 쉽게 관리하세요. 수백 개의 수합된 엑셀 파일은 더 이상 필요 없습니다.
                         </p>
                     </motion.div>
@@ -334,12 +374,15 @@ const BannerSection = () => {
 
 const Footer = () => {
     return (
-        <footer className="bg-white py-16 px-6 md:px-12 border-t border-slate-200">
+        <footer className="bg-white py-16 px-2 md:px-4 border-t border-slate-200">
             <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
-                <div className="flex flex-col gap-2">
-                    <Link href="/" className="flex items-center gap-2 text-2xl font-bold tracking-tighter text-indigo-950">
-                        <img src="/favicon.png" alt="BizDive" className="w-6 h-6 rounded border border-indigo-100 shadow-sm" />
-                        BizDive.
+                <div className="flex flex-col gap-1">
+                    <Link href="/" className="flex items-center gap-2">
+                        <img
+                            src="/BizDive_Logo_FINAL.png"
+                            alt="BizDive"
+                            className="h-11 sm:h-13 w-auto mix-blend-multiply -ml-4"
+                        />
                     </Link>
                     <p className="text-[13px] text-slate-500 font-medium tracking-wide">© 2026 Cube Inspiration Group., Co., Ltd. All rights reserved.</p>
                 </div>

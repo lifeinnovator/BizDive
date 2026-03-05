@@ -147,18 +147,18 @@ export default function DiagnosisForm({
             {/* Focus Header */}
             <header className="bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-50">
                 <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-4 hover:opacity-80 transition-opacity">
-                        <img src="/favicon.png" alt="BizDive" className="w-8 h-8 rounded-xl shadow-sm" />
-                        <div>
-                            <h1 className="text-[17px] font-bold text-slate-900 tracking-tight">
-                                BizDive - 7D 기업경영 심층자가진단
+                    <Link href="/" className="flex items-center gap-3 sm:gap-4 hover:opacity-80 transition-opacity">
+                        <img src="/BizDive_Logo_FINAL.png" alt="BizDive" className="h-10 sm:h-12 w-auto flex-shrink-0 mix-blend-multiply" />
+                        <div className="border-l border-slate-200 pl-3 sm:pl-4 min-w-0">
+                            <h1 className="text-[13px] sm:text-[14px] font-bold text-slate-700 tracking-tight mb-0.5 truncate">
+                                7D 기업경영 심층자가진단
                             </h1>
-                            <div className="flex items-center gap-2 text-[11px] font-medium text-slate-400">
+                            <div className="flex items-center gap-2 text-[10px] sm:text-[11px] font-medium text-slate-400 truncate">
                                 <span>{profile.company_name}</span>
                                 <span className="opacity-30">|</span>
                                 <span>{profile.user_name || profile.name}</span>
-                                <span className="opacity-30">|</span>
-                                <span>{dateStr}</span>
+                                <span className="opacity-30 hidden sm:inline">|</span>
+                                <span className="hidden sm:inline">{dateStr}</span>
                             </div>
                         </div>
                     </Link>
