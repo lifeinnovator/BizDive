@@ -213,23 +213,23 @@ const InstitutionExperience = () => {
                             <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-full text-[12px] font-bold tracking-[0.15em] uppercase">For Institutions</span>
                             <span className="text-sm font-bold text-slate-400">관리가 필요한 지원 기관 전용</span>
                         </div>
-                        <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-6 leading-tight">엑셀 없는 <br />통합 사업 관리.</h2>
+                        <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-6 leading-tight">지원사업별 <br />간편한 통합 관리.</h2>
                         <p className="text-slate-400 font-medium text-lg leading-relaxed max-w-md">
-                            수백 개의 수합된 엑셀 파일은 이제 필요 없습니다. 참가 스타트업들의 응답과 현황을 실시간 대시보드로 통제하세요.
+                            다수의 지원사업과 참가 기업들의 진단 및 실행 현황을 하나의 대시보드에서 쉽게 관리하세요. 수백 개의 수합된 엑셀 파일은 더 이상 필요 없습니다.
                         </p>
                     </motion.div>
 
                     <motion.div style={{ opacity: useTransform(scrollYProgress, [0.35, 0.45, 0.65], [0, 1, 0]) }} className="absolute pointer-events-none">
-                        <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-6 leading-tight">원클릭 <br />독려 시스템.</h2>
+                        <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-6 leading-tight">단계별 진단과<br />맞춤형 보완 가이드.</h2>
                         <p className="text-slate-400 font-medium text-lg leading-relaxed max-w-md">
-                            아직 진단을 완료하지 않은 기업들을 상태별로 필터링하여 클릭 한 번으로 독려 이메일을 발송합니다.
+                            차수별 연속 진단을 통해 개별 기업의 핵심 경쟁 요인과 부족한 부분을 도출하고, 이를 즉각 보완할 수 있는 실질적인 가이드를 제공합니다.
                         </p>
                     </motion.div>
 
                     <motion.div style={{ opacity: useTransform(scrollYProgress, [0.65, 0.8, 1], [0, 1, 1]) }} className="absolute pointer-events-none">
-                        <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-6 leading-tight">데이터 기반 <br />후속 육성.</h2>
+                        <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-6 leading-tight">지원사업 효과의<br />정량적 지표화.</h2>
                         <p className="text-slate-400 font-medium text-lg leading-relaxed max-w-md">
-                            기업별 상세 진단 리포트와 점수 변화 추이를 바탕으로 매우 객관적인 멘토링 매칭과 후속 지원을 결정합니다.
+                            지원사업 전후의 기업 경영 상황 변화를 객관적인 점수로 비교 분석합니다. 이를 통해 지원사업의 실제 성과를 정량적 지표로 명확하게 제시할 수 있습니다.
                         </p>
                     </motion.div>
                 </div>
