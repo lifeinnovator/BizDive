@@ -36,7 +36,7 @@ export default async function Image() {
                 <img
                     src={logoBase64}
                     alt="BizDive Logo"
-                    style={{ width: '600px', objectFit: 'contain' }}
+                    style={{ width: '1000px', objectFit: 'contain' }}
                 />
             </div>
         ),
