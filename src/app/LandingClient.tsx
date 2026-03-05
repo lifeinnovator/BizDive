@@ -213,9 +213,9 @@ const InstitutionExperience = () => {
                             <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-full text-[12px] font-bold tracking-[0.15em] uppercase">For Institutions</span>
                             <span className="text-sm font-bold text-slate-400">관리가 필요한 지원 기관 전용</span>
                         </div>
-                        <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-6 leading-tight">지원사업별 <br />간편한 통합 관리.</h2>
+                        <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-6 leading-tight">지원사업 효과의<br />정량적 지표화.</h2>
                         <p className="text-slate-400 font-medium text-lg leading-relaxed max-w-md">
-                            다수의 지원사업과 참가 기업들의 진단 및 실행 현황을 하나의 대시보드에서 쉽게 관리하세요. 수백 개의 수합된 엑셀 파일은 더 이상 필요 없습니다.
+                            지원사업 전후의 기업 경영 상황 변화를 객관적인 점수로 비교 분석합니다. 이를 통해 지원사업의 실제 성과를 정량적 지표로 명확하게 제시할 수 있습니다.
                         </p>
                     </motion.div>
 
@@ -227,9 +227,9 @@ const InstitutionExperience = () => {
                     </motion.div>
 
                     <motion.div style={{ opacity: useTransform(scrollYProgress, [0.65, 0.8, 1], [0, 1, 1]) }} className="absolute pointer-events-none">
-                        <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-6 leading-tight">지원사업 효과의<br />정량적 지표화.</h2>
+                        <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-6 leading-tight">지원사업별 <br />간편한 통합 관리.</h2>
                         <p className="text-slate-400 font-medium text-lg leading-relaxed max-w-md">
-                            지원사업 전후의 기업 경영 상황 변화를 객관적인 점수로 비교 분석합니다. 이를 통해 지원사업의 실제 성과를 정량적 지표로 명확하게 제시할 수 있습니다.
+                            다수의 지원사업과 참가 기업들의 진단 및 실행 현황을 하나의 대시보드에서 쉽게 관리하세요. 수백 개의 수합된 엑셀 파일은 더 이상 필요 없습니다.
                         </p>
                     </motion.div>
                 </div>
