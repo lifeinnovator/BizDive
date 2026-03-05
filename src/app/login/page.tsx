@@ -79,9 +79,9 @@ export default function LoginPage() {
                 <CardHeader>
                     <Link href="/" className="hover:opacity-80 transition-opacity flex justify-center">
                         <img
-                            src="/BizDive_Logo_FINAL.png"
+                            src="/BizDive_Logo_Confirm.png"
                             alt="BizDive Logo"
-                            className="h-16 sm:h-20 w-auto mb-6 mix-blend-multiply"
+                            className="h-14 sm:h-18 w-auto mb-6"
                             onError={(e) => (e.currentTarget.style.display = 'none')}
                         />
                     </Link>

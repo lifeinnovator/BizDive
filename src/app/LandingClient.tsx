@@ -22,9 +22,9 @@ const NavigationBar = () => {
             <div className="container mx-auto px-2 md:px-4 flex justify-between items-center max-w-7xl">
                 <Link href="/" className="flex items-center gap-2">
                     <img
-                        src="/BizDive_Logo_FINAL.png"
+                        src="/BizDive_Logo_Confirm.png"
                         alt="BizDive"
-                        className="h-10 sm:h-14 w-auto mix-blend-multiply"
+                        className="h-10 sm:h-12 w-auto"
                     />
                 </Link>
                 <div className="flex items-center gap-6">
@@ -53,7 +53,7 @@ const Hero = () => {
             >
                 <div className="flex items-center justify-center gap-2 mb-6">
                     <span className="bg-indigo-50 text-indigo-600 px-4 py-1.5 rounded-full text-sm font-bold tracking-tight border border-indigo-100 flex items-center gap-2 shadow-sm">
-                        <img src="/favicon.png" alt="" className="w-4 h-4 opacity-80" />
+                        <img src="/BizDive_Logo_Confirm.png" alt="" className="w-6 h-6 object-contain" />
                         BizDive - 7D 기업경영 심층자가진단
                     </span>
                 </div>
@@ -379,9 +379,9 @@ const Footer = () => {
                 <div className="flex flex-col gap-1">
                     <Link href="/" className="flex items-center gap-2">
                         <img
-                            src="/BizDive_Logo_FINAL.png"
+                            src="/BizDive_Logo_Confirm.png"
                             alt="BizDive"
-                            className="h-11 sm:h-13 w-auto mix-blend-multiply -ml-4"
+                            className="h-9 sm:h-11 w-auto -ml-3"
                         />
                     </Link>
                     <p className="text-[13px] text-slate-500 font-medium tracking-wide">© 2026 Cube Inspiration Group., Co., Ltd. All rights reserved.</p>

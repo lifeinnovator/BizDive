@@ -139,7 +139,7 @@ export default function OnboardingPage() {
                 <div className="flex flex-col items-center">
                     <div className="relative w-72 h-24 mb-2">
                         <Image
-                            src="/BizDive_Logo_v3.png"
+                            src="/BizDive_Logo_Confirm.png"
                             alt="BizDive"
                             fill
                             className="object-contain"
