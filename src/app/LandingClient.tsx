@@ -157,7 +157,10 @@ const FounderExperience = () => {
         <section className="py-32 bg-white px-6 md:px-12 border-b border-indigo-50">
             <div className="max-w-7xl mx-auto">
                 <div className="mb-24 md:w-2/3">
-                    <h3 className="text-[13px] font-bold tracking-[0.2em] text-indigo-600 uppercase mb-4">For Founders</h3>
+                    <div className="inline-flex items-center gap-3 mb-6">
+                        <span className="px-3 py-1 bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-full text-[12px] font-bold tracking-[0.15em] uppercase">For Founders</span>
+                        <span className="text-sm font-bold text-slate-500">지표 확인이 필요한 기업가 전용</span>
+                    </div>
                     <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tighter text-indigo-950 mb-8 leading-tight">
                         아이디어의 현주소, <br />
                         가장 빠르고 냉정하게.
@@ -206,7 +209,10 @@ const InstitutionExperience = () => {
                 {/* Text Content Left */}
                 <div className="w-full md:w-5/12 z-10 space-y-24 py-20 relative h-full flex flex-col justify-center">
                     <motion.div style={{ opacity: useTransform(scrollYProgress, [0, 0.1, 0.3], [1, 1, 0]) }} className="absolute">
-                        <h3 className="text-[13px] font-bold tracking-[0.2em] text-slate-500 uppercase mb-4">For Institutions</h3>
+                        <div className="inline-flex items-center gap-3 mb-6">
+                            <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-full text-[12px] font-bold tracking-[0.15em] uppercase">For Institutions</span>
+                            <span className="text-sm font-bold text-slate-400">관리가 필요한 지원 기관 전용</span>
+                        </div>
                         <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-6 leading-tight">엑셀 없는 <br />통합 사업 관리.</h2>
                         <p className="text-slate-400 font-medium text-lg leading-relaxed max-w-md">
                             수백 개의 수합된 엑셀 파일은 이제 필요 없습니다. 참가 스타트업들의 응답과 현황을 실시간 대시보드로 통제하세요.
