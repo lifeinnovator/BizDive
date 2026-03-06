@@ -44,7 +44,7 @@ const NavigationBar = () => {
 
 const Hero = () => {
     return (
-        <section className="relative pt-24 pb-16 sm:pt-36 sm:pb-24 px-6 md:px-12 bg-white flex flex-col items-center justify-center text-center min-h-[70vh] sm:min-h-[75vh] selection:bg-indigo-900 selection:text-white border-b border-indigo-50">
+        <section className="relative pt-28 pb-16 sm:pt-36 sm:pb-24 px-6 md:px-12 bg-white flex flex-col items-center justify-center text-center min-h-[70vh] sm:min-h-[75vh] selection:bg-indigo-900 selection:text-white border-b border-indigo-50">
             <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
