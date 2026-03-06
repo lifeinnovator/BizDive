@@ -131,8 +131,7 @@ const UserPathSelection = () => {
                             </Button>
                         </Link>
                         <p className="text-[12px] text-slate-400 mt-4 font-medium text-left leading-relaxed break-keep">
-                            * 잠시의 집중과 진솔한 답변으로 <br className="sm:hidden" />
-                            기업의 현재를 정확하게 진단해 보세요.
+                            * 잠시의 집중과 진솔한 답변으로 기업의 현재를 정확하게 진단해 보세요.
                         </p>
                     </motion.div>
 
@@ -149,11 +148,12 @@ const UserPathSelection = () => {
                             <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mb-8 border border-emerald-100 shadow-sm">
                                 <Building2 className="w-6 h-6" />
                             </div>
-                            <h3 className="text-2xl font-bold text-slate-900 mb-4 tracking-tight">지원사업 담당자 / 기관</h3>
+                            <h3 className="text-2xl font-bold text-slate-900 mb-4 tracking-tight">기관 / 지원사업 담당자</h3>
                             <p className="text-slate-500 mb-8 font-medium leading-relaxed text-[15px] sm:text-base break-keep">
-                                "엑셀 없는 사업 관리를 원하시나요?"<br />
-                                차수별 기업 성장 데이터 자동 추적 및 <br className="sm:hidden" />
-                                미응답 기업 원클릭 독려 메일 시스템을 경험하세요.
+                                "지원사업의 성과, 입체적인 데이터로."<br />
+                                지원사업 효과의 정량적 지표 산출과 <br className="sm:hidden" />
+                                기업별 성장 데이터 추적 및 통합 관리를 통해 <br className="sm:hidden" />
+                                데이터 기반의 스마트한 지원 체계를 경험하세요.
                             </p>
                         </div>
                         <Link href="/admin/demo" className="mt-auto">
