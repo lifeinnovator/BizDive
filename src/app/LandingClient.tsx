@@ -74,10 +74,8 @@ const Hero = () => {
                     정밀 분석합니다.
                 </p>
                 <p className="text-base sm:text-lg text-slate-500 font-medium tracking-tight mb-10 sm:mb-14 max-w-2xl mx-auto leading-relaxed break-keep">
-                    이를 통해 기업은 현재의 성장 단계를 명확히 인지하고,
-                    <br className="hidden lg:block" />
-                    다음 단계로 도약하기 위한 <br className="md:hidden" />
-                    구체적인 실행 전략을 수립할 수 있습니다.
+                    이를 통해 기업은 현재의 성장 단계를 명확히 인지하고, <br className="sm:hidden" />
+                    다음 단계로 도약하기 위한 구체적인 실행 전략을 수립할 수 있습니다.
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                     <Link href="/onboarding" className="w-full sm:w-auto">
