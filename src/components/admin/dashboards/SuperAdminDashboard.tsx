@@ -28,6 +28,7 @@ interface SuperAdminDashboardProps {
         totalRecords: number
         avgScore: number
         totalGroups: number
+        totalConsultations: number
         industryDistribution: any[]
         recentActivities: any[]
     }
@@ -58,7 +59,7 @@ export default function SuperAdminDashboard({ stats }: SuperAdminDashboardProps)
                     { name: '전체 사용자', value: stats.totalUsers, icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-50', delta: '+8%' },
                     { name: '등록 기관/그룹', value: stats.totalGroups, icon: Building2, color: 'text-purple-600', bg: 'bg-purple-50', delta: '+2' },
                     { name: '누적 진단건수', value: stats.totalRecords, icon: History, color: 'text-amber-600', bg: 'bg-amber-50', delta: '+15%' },
-                    { name: '플랫폼 평균 점수', value: stats.avgScore, icon: Target, color: 'text-emerald-600', bg: 'bg-emerald-50', delta: '+1.2' },
+                    { name: '상담/컨설팅 접수', value: stats.totalConsultations, icon: Target, color: 'text-emerald-600', bg: 'bg-emerald-50', delta: 'New' },
                 ].map((item) => (
                     <Card key={item.name} className="border-none shadow-sm hover:shadow-md transition-all duration-300 bg-white overflow-hidden group">
                         <CardContent className="p-6">

@@ -12,7 +12,8 @@ import {
     Briefcase,
     X,
     Menu,
-    ChevronLeft
+    ChevronLeft,
+    MessageSquare
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
@@ -20,6 +21,7 @@ const navItems = [
     { name: '대시보드', href: '/admin', icon: LayoutGrid },
     { name: '기업/그룹 관리', href: '/admin/groups', icon: Building },
     { name: '사업관리', href: '/admin/projects', icon: Briefcase },
+    { name: '상담/매칭 관리', href: '/admin/consultations', icon: MessageSquare },
     { name: '사용자 관리', href: '/admin/users', icon: Users2 },
     { name: '진단 로직 CMS', href: '/admin/cms', icon: Database },
     { name: '설정', href: '/admin/settings', icon: Settings },
@@ -42,6 +44,8 @@ export default function AdminSidebar({
 
     const filteredNavItems = navItems.filter(item => {
         if (item.href === '/admin/cms' && userRole !== 'super_admin') return false
+        if (item.href === '/admin/consultations' && userRole !== 'super_admin') return false
+        if (item.href === '/admin/users' && userRole !== 'super_admin') return false
         return true
     })
 

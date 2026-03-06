@@ -40,6 +40,7 @@ export default function AdminDashboard() {
         avgScore: 0,
         totalGroups: 0,
         totalProjects: 0,
+        totalConsultations: 0,
         industryDistribution: [] as any[],
         recentActivities: [] as any[]
     })
@@ -69,6 +70,7 @@ export default function AdminDashboard() {
             const projectsQuery = supabase.from('projects').select('id', { count: 'exact', head: true })
             const groupsQuery = supabase.from('groups').select('id', { count: 'exact', head: true })
             const recordsQuery = supabase.from('diagnosis_records').select('id, total_score, created_at, user_id, profiles(company_name, user_name, group_id, groups(name))')
+            const consultationsQuery = supabase.from('consultations').select('id', { count: 'exact', head: true })
 
             if (!isAdmin) {
                 usersQuery.eq('group_id', groupId)
@@ -77,11 +79,12 @@ export default function AdminDashboard() {
                 recordsQuery.filter('profiles.group_id', 'eq', groupId)
             }
 
-            const [usersRes, projectsRes, groupsRes, recordsRes] = await Promise.all([
+            const [usersRes, projectsRes, groupsRes, recordsRes, consultationsRes] = await Promise.all([
                 usersQuery,
                 projectsQuery,
                 isAdmin ? groupsQuery : Promise.resolve({ count: 1 }),
-                recordsQuery.order('created_at', { ascending: false }).limit(isAdmin ? 10 : 5)
+                recordsQuery.order('created_at', { ascending: false }).limit(isAdmin ? 10 : 5),
+                isAdmin ? consultationsQuery : Promise.resolve({ count: 0 })
             ])
 
             // Calculate Industry Distribution
@@ -122,6 +125,7 @@ export default function AdminDashboard() {
                 avgScore: Math.round(avgScore * 10) / 10,
                 totalGroups: groupsRes.count || 1,
                 totalProjects: projectsRes.count || 0,
+                totalConsultations: consultationsRes.count || 0,
                 industryDistribution,
                 recentActivities
             })

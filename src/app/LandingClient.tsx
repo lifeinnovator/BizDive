@@ -425,20 +425,6 @@ const Footer = () => {
 export default function LandingClient() {
     return (
         <div className="min-h-screen bg-slate-50 font-sans selection:bg-indigo-900 selection:text-white">
-            {/* Task Tracking */}
-            {/*
-            - [x] 1. Database Schema Design (consultations table)
-                - [x] Create `consultations` table in Supabase
-                - [x] Set up Row Level Security (RLS) policies
-                - [x] Add `status` enum (pending, assigned, in_progress, completed)
-            - [x] 2. User-Facing Consultation Form (`/consultation/apply`)
-                - [x] Create responsive form page with Shadcn UI components
-                - [x] Implement form validation (Zod + React Hook Form)
-                - [x] Integrate Supabase submit logic
-                - [x] Add success confirmation state
-            - [x] 3. Landing Page Integration
-                - [x] Update '전문가 매칭 신청' button to route to new internal form
-            */}
             <NavigationBar />
             <main>
                 <Hero />
@@ -451,4 +437,3 @@ export default function LandingClient() {
         </div>
     );
 }
-```
