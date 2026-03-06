@@ -234,7 +234,7 @@ const InstitutionExperience = () => {
                 {/* Text Content Left */}
                 <div className="w-full md:w-5/12 z-10 py-12 sm:py-20 relative h-[400px] flex flex-col justify-start md:justify-center">
                     {/* Fixed Header */}
-                    <div className="absolute top-0 left-0 pt-8 sm:pt-10">
+                    <div className="absolute top-0 left-0 pt-24 sm:pt-10">
                         <div className="flex flex-col items-start gap-1 sm:gap-4 mb-8 sm:mb-8">
                             <span className="px-4 py-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-lg text-[13px] font-bold tracking-[0.1em] uppercase shadow-sm">
                                 For Institutions
@@ -249,7 +249,7 @@ const InstitutionExperience = () => {
                     <motion.div
                         style={{
                             opacity: useTransform(scrollYProgress, [0, 0.1, 0.25], [1, 1, 0]),
-                            y: useTransform(scrollYProgress, [0, 0.1, 0.25], [120, 120, 100])
+                            y: useTransform(scrollYProgress, [0, 0.1, 0.25], [200, 200, 180])
                         }}
                         className="absolute inset-x-0"
                     >
@@ -269,7 +269,7 @@ const InstitutionExperience = () => {
                     <motion.div
                         style={{
                             opacity: useTransform(scrollYProgress, [0.3, 0.45, 0.6], [0, 1, 0]),
-                            y: useTransform(scrollYProgress, [0.3, 0.45, 0.6], [140, 120, 100])
+                            y: useTransform(scrollYProgress, [0.3, 0.45, 0.6], [220, 200, 180])
                         }}
                         className="absolute inset-x-0 pointer-events-none"
                     >
@@ -286,7 +286,7 @@ const InstitutionExperience = () => {
                     <motion.div
                         style={{
                             opacity: useTransform(scrollYProgress, [0.65, 0.8, 1], [0, 1, 1]),
-                            y: useTransform(scrollYProgress, [0.65, 0.8, 1], [140, 120, 120])
+                            y: useTransform(scrollYProgress, [0.65, 0.8, 1], [220, 200, 200])
                         }}
                         className="absolute inset-x-0 pointer-events-none"
                     >
