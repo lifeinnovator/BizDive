@@ -63,7 +63,19 @@ export default function LoginPage() {
                 console.error('Login Error:', error);
                 setError('이메일 또는 비밀번호가 일치하지 않습니다.');
             } else {
-                router.push('/dashboard');
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+                    if (profile?.role === 'super_admin') {
+                        router.push('/ops');
+                    } else if (profile?.role === 'group_admin') {
+                        router.push('/admin');
+                    } else {
+                        router.push('/dashboard');
+                    }
+                } else {
+                    router.push('/dashboard');
+                }
                 router.refresh();
             }
         } catch (err) {

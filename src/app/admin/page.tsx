@@ -18,7 +18,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import ScoreIndicator from '@/components/admin/ScoreIndicator'
 import { createClient } from '@/lib/supabase'
-import SuperAdminDashboard from '@/components/admin/dashboards/SuperAdminDashboard'
 import InstitutionAdminDashboard from '@/components/admin/dashboards/InstitutionAdminDashboard'
 
 const mockRadarData = [
@@ -42,7 +41,8 @@ export default function AdminDashboard() {
         totalProjects: 0,
         totalConsultations: 0,
         industryDistribution: [] as any[],
-        recentActivities: [] as any[]
+        recentActivities: [] as any[],
+        projectStats: [] as any[]
     })
 
     useEffect(() => {
@@ -62,39 +62,41 @@ export default function AdminDashboard() {
             setUserProfile(profile)
 
             // 2. Fetch Stats with RBAC Filtering
-            const isAdmin = profile?.role === 'super_admin'
             const groupId = profile?.group_id
-
-            // Basic Counts
-            const usersQuery = supabase.from('profiles').select('id, industry', { count: 'exact', head: false })
-            const projectsQuery = supabase.from('projects').select('id', { count: 'exact', head: true })
-            const groupsQuery = supabase.from('groups').select('id', { count: 'exact', head: true })
-            const recordsQuery = supabase.from('diagnosis_records').select('id, total_score, created_at, user_id, profiles(company_name, user_name, group_id, groups(name))')
-            const consultationsQuery = supabase.from('consultations').select('id', { count: 'exact', head: true })
-
-            if (!isAdmin) {
-                usersQuery.eq('group_id', groupId)
-                projectsQuery.eq('group_id', groupId)
-                // Filter records by group_id in profiles
-                recordsQuery.filter('profiles.group_id', 'eq', groupId)
+            if (!groupId) {
+                setLoading(false)
+                return
             }
 
-            const [usersRes, projectsRes, groupsRes, recordsRes, consultationsRes] = await Promise.all([
+            // Basic Counts
+            const usersQuery = supabase.from('profiles').select('id, industry', { count: 'exact', head: false }).eq('group_id', groupId)
+            const projectsQuery = supabase.from('projects').select('id, name').eq('group_id', groupId)
+            
+            const [usersRes, projectsRes] = await Promise.all([
                 usersQuery,
-                projectsQuery,
-                isAdmin ? groupsQuery : Promise.resolve({ count: 1 }),
-                recordsQuery.order('created_at', { ascending: false }).limit(isAdmin ? 10 : 5),
-                isAdmin ? consultationsQuery : Promise.resolve({ count: 0 })
+                projectsQuery
             ])
+
+            const projectIds = projectsRes.data?.map(p => p.id) || []
+            let recordsData: any[] = []
+            
+            if (projectIds.length > 0) {
+                const { data } = await supabase.from('diagnosis_records')
+                    .select('id, total_score, created_at, user_id, project_id, guest_name, guest_company, guest_industry, profiles(company_name, user_name, industry)')
+                    .in('project_id', projectIds)
+                    .order('created_at', { ascending: false })
+                recordsData = data || []
+            }
 
             // Calculate Industry Distribution
             const industryMap: Record<string, number> = { 'I': 0, 'H': 0, 'L': 0, 'CT': 0 }
             const industryLabels: Record<string, string> = { 'I': 'IT/SaaS', 'H': '제조/HW', 'L': '로컬/F&B', 'CT': '콘텐츠' }
             const industryColors: Record<string, string> = { 'I': '#4f46e5', 'H': '#10b981', 'L': '#f59e0b', 'CT': '#ec4899' }
 
-            usersRes.data?.forEach(u => {
-                if (u.industry && industryMap[u.industry] !== undefined) {
-                    industryMap[u.industry]++
+            recordsData.forEach(r => {
+                const ind = r.user_id ? r.profiles?.industry : r.guest_industry
+                if (ind && industryMap[ind] !== undefined) {
+                    industryMap[ind]++
                 }
             })
 
@@ -104,30 +106,51 @@ export default function AdminDashboard() {
                 color: industryColors[key]
             })).sort((a, b) => b.count - a.count)
 
+            // Process per-project stats
+            const projectsStatsMap: Record<string, { id: string, name: string, recordCount: number, totalScore: number }> = {}
+            projectsRes.data?.forEach(p => {
+                projectsStatsMap[p.id] = { id: p.id, name: p.name, recordCount: 0, totalScore: 0 }
+            })
+
+            recordsData.forEach(r => {
+                if (r.project_id && projectsStatsMap[r.project_id]) {
+                    projectsStatsMap[r.project_id].recordCount++
+                    projectsStatsMap[r.project_id].totalScore += (r.total_score || 0)
+                }
+            })
+
+            const projectStats = Object.values(projectsStatsMap).map(p => ({
+                id: p.id,
+                name: p.name,
+                recordCount: p.recordCount,
+                avgScore: p.recordCount > 0 ? Math.round((p.totalScore / p.recordCount) * 10) / 10 : 0
+            })).sort((a, b) => b.recordCount - a.recordCount)
+
             // Process Recent Activities
-            const recentActivities = (recordsRes.data as any[])?.map(r => ({
-                group: r.profiles?.groups?.name || '소속 없음',
-                company: r.profiles?.company_name || '미지정 기업',
+            const recentActivities = recordsData.slice(0, 5).map(r => ({
+                company: r.user_id ? r.profiles?.company_name : (r.guest_company || '미지정 기업(비회원)'),
                 event: '진단 제출 완료',
                 time: new Date(r.created_at).toLocaleString(),
-                user: r.profiles?.user_name || '담당자',
-                score: r.total_score
-            })) || []
+                user: r.user_id ? r.profiles?.user_name : (r.guest_name || '비회원'),
+                score: r.total_score,
+                project_name: r.project_id ? projectsStatsMap[r.project_id]?.name : '알수없음'
+            }))
 
-            const totalRecords = recordsRes.data?.length || 0
+            const totalRecords = recordsData.length
             const avgScore = totalRecords > 0
-                ? (recordsRes.data as any[]).reduce((acc, curr) => acc + (curr.total_score || 0), 0) / totalRecords
+                ? recordsData.reduce((acc, curr) => acc + (curr.total_score || 0), 0) / totalRecords
                 : 0
 
             setDashboardStats({
-                totalUsers: usersRes.count || 0,
-                totalRecords: totalRecords, // This is just the limit for now, maybe fetch separate count
+                totalUsers: usersRes.data?.length || 0, // Should be exact count realistically
+                totalRecords: totalRecords,
                 avgScore: Math.round(avgScore * 10) / 10,
-                totalGroups: groupsRes.count || 1,
-                totalProjects: projectsRes.count || 0,
-                totalConsultations: consultationsRes.count || 0,
+                totalGroups: 1, // Only their own group
+                totalProjects: projectIds.length,
+                totalConsultations: 0,
                 industryDistribution,
-                recentActivities
+                recentActivities,
+                projectStats: projectStats as any // adding new property
             })
             setLoading(false)
         }
@@ -147,11 +170,7 @@ export default function AdminDashboard() {
 
     return (
         <div className="space-y-8">
-            {userProfile?.role === 'super_admin' ? (
-                <SuperAdminDashboard stats={dashboardStats} />
-            ) : (
-                <InstitutionAdminDashboard profile={userProfile} stats={dashboardStats} />
-            )}
+            <InstitutionAdminDashboard profile={userProfile} stats={dashboardStats} />
         </div>
     )
 }

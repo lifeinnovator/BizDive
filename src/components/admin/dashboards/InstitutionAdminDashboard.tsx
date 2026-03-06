@@ -30,6 +30,7 @@ interface InstitutionAdminDashboardProps {
         avgScore: number
         totalProjects: number
         recentActivities: any[]
+        projectStats?: any[]
     }
     isDemo?: boolean
 }
@@ -149,72 +150,57 @@ export default function InstitutionAdminDashboard({ profile, stats, isDemo = fal
                 </Card>
             </div>
 
-            {/* Quick Actions & Tips */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <Card className="bg-indigo-600 text-white border-none shadow-lg shadow-indigo-100 p-8 flex flex-col justify-between">
-                    <div>
-                        <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center mb-6">
-                            <Mail size={24} className="text-white" />
+            {/* Project Stats (지원사업별 통계) */}
+            <div className="grid grid-cols-1 gap-8">
+                <Card className="border-none shadow-sm bg-white overflow-hidden">
+                    <CardHeader className="border-b border-slate-50 flex flex-row items-center justify-between">
+                        <CardTitle className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                            <Briefcase size={20} className="text-indigo-600" />
+                            지원사업별 진단 통계
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="bg-slate-50 border-b border-slate-100">
+                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider h-14">지원사업명</th>
+                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider h-14">제출된 진단(건)</th>
+                                        <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider h-14 text-right">평균 점수</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-50">
+                                    {stats.projectStats && stats.projectStats.length > 0 ? (
+                                        stats.projectStats.map((project: any) => (
+                                            <tr key={project.id} className="hover:bg-slate-50/50 transition-colors group">
+                                                <td className="px-6 py-4">
+                                                    <div className="font-bold text-slate-800 text-sm">{project.name}</div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-100 font-bold px-3">
+                                                        {project.recordCount}건
+                                                    </Badge>
+                                                </td>
+                                                <td className="px-6 py-4 text-right">
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <span className="text-sm font-black text-slate-900">{project.avgScore}</span>
+                                                        <span className="text-xs text-slate-400">pt</span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan={3} className="px-6 py-12 text-center text-slate-400 font-medium text-sm italic">
+                                                등록된 지원사업 또는 제출된 진단 내역이 없습니다.
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
                         </div>
-                        <h4 className="text-xl font-black mb-3">미제출 기업 독려가 필요한가요?</h4>
-                        <p className="text-indigo-100 text-sm leading-relaxed font-bold opacity-80">
-                            현재 진행중인 프로젝트에서 8개 기업이 아직 진단을 완료하지 않았습니다. 알림 메일을 일괄 발송하여 참여율을 높여보세요.
-                        </p>
-                    </div>
-                    <Button className="mt-8 bg-white text-indigo-600 hover:bg-indigo-50 border-none font-black h-12 text-base rounded-xl">
-                        독려 대상 확인하기
-                    </Button>
+                    </CardContent>
                 </Card>
-
-                <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Card className="border-none shadow-sm bg-white p-6 border-l-4 border-l-indigo-500">
-                        <div className="flex items-center gap-4 mb-4">
-                            <div className="p-3 bg-indigo-50 rounded-xl">
-                                <CheckCircle2 className="text-indigo-600" size={24} />
-                            </div>
-                            <h5 className="font-bold text-slate-800">진단 신뢰도 점검</h5>
-                        </div>
-                        <p className="text-sm text-slate-500 font-medium leading-relaxed">
-                            소속 기업들의 진단 답변 일관성이 전반적으로 높게 유지되고 있습니다. 데이터 기반의 객관적 분석이 가능합니다.
-                        </p>
-                    </Card>
-
-                    <Card className="border-none shadow-sm bg-white p-6 border-l-4 border-l-emerald-500">
-                        <div className="flex items-center gap-4 mb-4">
-                            <div className="p-3 bg-emerald-50 rounded-xl">
-                                <ArrowUpRight className="text-emerald-600" size={24} />
-                            </div>
-                            <h5 className="font-bold text-slate-800">주요 성장 차원</h5>
-                        </div>
-                        <p className="text-sm text-slate-500 font-medium leading-relaxed">
-                            우리 기관 기업들은 '실행 역량' 부문에서 플랫폼 상위 15%에 달하는 높은 성과를 보여주고 있습니다.
-                        </p>
-                    </Card>
-
-                    <Card className="border-none shadow-sm bg-white p-6 border-l-4 border-l-amber-500">
-                        <div className="flex items-center gap-4 mb-4">
-                            <div className="p-3 bg-amber-50 rounded-xl">
-                                <Circle className="text-amber-600" size={24} />
-                            </div>
-                            <h5 className="font-bold text-slate-800">보완 필요 차원</h5>
-                        </div>
-                        <p className="text-sm text-slate-500 font-medium leading-relaxed">
-                            '수익 모델' 정교화 부문의 점수가 상대적으로 낮습니다. 관련 특강이나 멘토링 프로그램 연계를 추천합니다.
-                        </p>
-                    </Card>
-
-                    <Card className="border-none shadow-sm bg-white p-6 border-l-4 border-l-slate-400">
-                        <div className="flex items-center gap-4 mb-4">
-                            <div className="p-3 bg-slate-100 rounded-xl">
-                                <Users className="text-slate-600" size={24} />
-                            </div>
-                            <h5 className="font-bold text-slate-800">최근 졸업 기업</h5>
-                        </div>
-                        <p className="text-sm text-slate-500 font-medium leading-relaxed">
-                            지난 분기 우수 성장 기업 3개사의 리포트를 참고하여 차기 사업 기획의 벤치마크로 활용해 보세요.
-                        </p>
-                    </Card>
-                </div>
             </div>
         </div>
     )

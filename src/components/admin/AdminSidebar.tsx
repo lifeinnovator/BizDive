@@ -19,12 +19,8 @@ import { Button } from '@/components/ui/button'
 
 const navItems = [
     { name: '대시보드', href: '/admin', icon: LayoutGrid },
-    { name: '기업/그룹 관리', href: '/admin/groups', icon: Building },
     { name: '사업관리', href: '/admin/projects', icon: Briefcase },
-    { name: '상담/매칭 관리', href: '/admin/consultations', icon: MessageSquare },
     { name: '사용자 관리', href: '/admin/users', icon: Users2 },
-    { name: '진단 로직 CMS', href: '/admin/cms', icon: Database },
-    { name: '설정', href: '/admin/settings', icon: Settings },
 ]
 
 interface SidebarProps {
@@ -41,13 +37,6 @@ export default function AdminSidebar({
     isDemo = false
 }: SidebarProps) {
     const pathname = usePathname()
-
-    const filteredNavItems = navItems.filter(item => {
-        if (item.href === '/admin/cms' && userRole !== 'super_admin') return false
-        if (item.href === '/admin/consultations' && userRole !== 'super_admin') return false
-        if (item.href === '/admin/users' && userRole !== 'super_admin') return false
-        return true
-    })
 
     return (
         <aside
@@ -81,7 +70,7 @@ export default function AdminSidebar({
 
                 {/* Navigation */}
                 <nav className="flex-grow py-6 px-3 space-y-1">
-                    {filteredNavItems.map((item) => {
+                    {navItems.map((item) => {
                         const href = isDemo ? (item.href === '/admin' ? '/admin/demo' : item.href.replace('/admin/', '/admin/demo/')) : item.href
                         const isActive = pathname === href || (href !== '/admin' && href !== '/admin/demo' && pathname.startsWith(href))
                         return (
@@ -103,7 +92,7 @@ export default function AdminSidebar({
                 {/* Footer */}
                 <div className="p-4 border-t border-slate-800">
                     <Link href="/" className="text-xs text-slate-500 hover:text-slate-300 flex items-center gap-2">
-                        {!isCollapsed && <span>{isDemo ? '← 랜딩 페이지로 돌아가기' : '← 서비스 바로가기'}</span>}
+                        {!isCollapsed && <span>← 홈으로 돌아가기</span>}
                     </Link>
                 </div>
             </div>

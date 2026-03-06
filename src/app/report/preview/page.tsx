@@ -39,6 +39,7 @@ interface PreviewData {
     userId: string
     round: number
     projectId: string | null
+    recordId?: string | null
 }
 
 const DIMENSION_KR: Record<string, string> = {
@@ -101,19 +102,31 @@ export default function ReportPreviewPage() {
         try {
             const stageResult = getGrade(totalScore)
 
-            const { error } = await supabase
-                .from('diagnosis_records')
-                .insert({
-                    user_id: targetUserId,
-                    responses: answers,
-                    total_score: totalScore,
-                    dimension_scores: sectionScores,
-                    stage_result: stageResult,
-                    round: round,
-                    project_id: projectId
-                })
-
-            if (error) throw error
+            if (data.recordId) {
+                // Update existing auto-saved record
+                const { error } = await supabase
+                    .from('diagnosis_records')
+                    .update({
+                        user_id: targetUserId,
+                        // Not updating responses/score since they haven't changed
+                    })
+                    .eq('id', data.recordId)
+                if (error) throw error
+            } else {
+                // Fallback insert if auto-save failed
+                const { error } = await supabase
+                    .from('diagnosis_records')
+                    .insert({
+                        user_id: targetUserId,
+                        responses: answers,
+                        total_score: totalScore,
+                        dimension_scores: sectionScores,
+                        stage_result: stageResult,
+                        round: round,
+                        project_id: projectId
+                    })
+                if (error) throw error
+            }
 
             // Clean up sessionStorage
             sessionStorage.removeItem('bizdive_report_preview')

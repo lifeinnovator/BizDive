@@ -116,10 +116,43 @@ export default function DiagnosisForm({
         }))
     }
 
-    const handleViewReport = () => {
+    const handleViewReport = async () => {
         if (totalScore === 0) {
             alert('최소 1개 이상의 문항에 응답해주세요.')
             return
+        }
+
+        // Auto-save the record to capture "Unregistered Users" as requested
+        // Or to capture registered users' tests even if they forget to click "save" on the next screen.
+        let newRecordId: string | null = null;
+        try {
+            const { createClient } = await import('@/lib/supabase');
+            const supabase = createClient();
+            
+            const stageResult = (await import('@/lib/scoring-utils')).getGrade(totalScore);
+
+            const { data: recordData, error } = await supabase.from('diagnosis_records').insert({
+                user_id: !isGuest && userId ? userId : null,
+                responses: answers,
+                total_score: totalScore,
+                dimension_scores: sectionScores,
+                stage_result: stageResult,
+                round: round,
+                project_id: projectId,
+                guest_name: isGuest ? profile.user_name || profile.name : null,
+                guest_email: isGuest ? profile.email : null,
+                guest_company: isGuest ? profile.company_name : null,
+                guest_stage: isGuest ? profile.stage : null,
+                guest_industry: isGuest ? profile.industry : null
+            }).select('id').single();
+
+            if (!error && recordData) {
+                newRecordId = recordData.id;
+            } else if (error) {
+                console.error("Auto-save error:", error);
+            }
+        } catch (err) {
+            console.error("Failed to auto-save diagnosis:", err);
         }
 
         // Save diagnosis data to sessionStorage for the preview page
@@ -133,6 +166,7 @@ export default function DiagnosisForm({
             userId,
             round,
             projectId,
+            recordId: newRecordId // pass the ID to preview page so it can update instead of insert
         }
         sessionStorage.setItem('bizdive_report_preview', JSON.stringify(previewData))
         router.push('/report/preview')

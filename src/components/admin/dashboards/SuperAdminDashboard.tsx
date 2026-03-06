@@ -25,6 +25,7 @@ import {
 interface SuperAdminDashboardProps {
     stats: {
         totalUsers: number
+        unregisteredUsers: number
         totalRecords: number
         avgScore: number
         totalGroups: number
@@ -54,9 +55,10 @@ export default function SuperAdminDashboard({ stats }: SuperAdminDashboardProps)
     return (
         <div className="space-y-8 animate-in fade-in duration-700">
             {/* Platform Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
                 {[
-                    { name: '전체 사용자', value: stats.totalUsers, icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-50', delta: '+8%' },
+                    { name: '가입 회원 수', value: stats.totalUsers, icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-50', delta: '+8%' },
+                    { name: '미가입 진단 사용자', value: stats.unregisteredUsers, icon: Users, color: 'text-slate-600', bg: 'bg-slate-50', delta: 'New' },
                     { name: '등록 기관/그룹', value: stats.totalGroups, icon: Building2, color: 'text-purple-600', bg: 'bg-purple-50', delta: '+2' },
                     { name: '누적 진단건수', value: stats.totalRecords, icon: History, color: 'text-amber-600', bg: 'bg-amber-50', delta: '+15%' },
                     { name: '상담/컨설팅 접수', value: stats.totalConsultations, icon: Target, color: 'text-emerald-600', bg: 'bg-emerald-50', delta: 'New' },

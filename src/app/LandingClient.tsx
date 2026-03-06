@@ -9,9 +9,25 @@ import { ArrowRight, Search, Rocket, Building2 } from 'lucide-react';
 
 const NavigationBar = () => {
     const [scrolled, setScrolled] = useState(false);
+    const [userRole, setUserRole] = useState<string | null>(null);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 50);
         window.addEventListener('scroll', handleScroll);
+
+        const checkUser = async () => {
+            const { createClient } = await import('@/lib/supabase');
+            const supabase = createClient();
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                setIsLoggedIn(true);
+                const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+                if (profile) setUserRole(profile.role);
+            }
+        };
+        checkUser();
+
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
@@ -28,9 +44,27 @@ const NavigationBar = () => {
                     />
                 </Link>
                 <div className="flex items-center gap-3 sm:gap-6">
-                    <Link href="/login" className="text-[13px] sm:text-[15px] font-bold text-slate-500 hover:text-indigo-900 transition-colors">
-                        회원로그인
-                    </Link>
+                    {isLoggedIn ? (
+                        <>
+                            <Link href="/dashboard" className="text-[13px] sm:text-[15px] font-bold text-slate-500 hover:text-indigo-900 transition-colors">
+                                나의 대시보드
+                            </Link>
+                            {userRole === 'super_admin' && (
+                                <Link href="/ops" className="text-[13px] sm:text-[15px] font-bold text-indigo-600 hover:text-indigo-900 transition-colors">
+                                    운영 관리
+                                </Link>
+                            )}
+                            {userRole === 'group_admin' && (
+                                <Link href="/admin" className="text-[13px] sm:text-[15px] font-bold text-indigo-600 hover:text-indigo-900 transition-colors">
+                                    기관 관리
+                                </Link>
+                            )}
+                        </>
+                    ) : (
+                        <Link href="/login" className="text-[13px] sm:text-[15px] font-bold text-slate-500 hover:text-indigo-900 transition-colors">
+                            회원로그인
+                        </Link>
+                    )}
                     <Link href="/onboarding">
                         <Button className="rounded-none bg-indigo-900 hover:bg-indigo-800 text-white font-bold px-4 sm:px-7 h-9 sm:h-11 text-[13px] sm:text-base tracking-tight">
                             무료 진단 시작

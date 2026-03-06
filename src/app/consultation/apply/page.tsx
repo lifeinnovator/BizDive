@@ -119,7 +119,7 @@ export default function ConsultationApplyPage() {
             <div className="max-w-2xl mx-auto">
                 <Link href="/" className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-slate-800 mb-8 transition-colors">
                     <ArrowLeft size={16} className="mr-2" />
-                    랜딩 페이지로 돌아가기
+                    홈으로 돌아가기
                 </Link>
 
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
