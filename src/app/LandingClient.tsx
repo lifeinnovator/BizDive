@@ -384,12 +384,13 @@ const BannerSection = () => {
                         1:1 맞춤 솔루션을 제안해 드립니다. <br className="sm:hidden" />
                         <span className="font-bold text-emerald-400">(베타 기간 무료)</span>
                     </p>
-                    <Button
-                        onClick={() => window.open('https://forms.gle/rxVu3dFYjRPNSHaY6', '_blank')}
-                        className="font-bold text-indigo-900 bg-white hover:bg-slate-100 px-8 h-14 text-[16px] rounded-none shadow-sm w-full sm:w-auto"
-                    >
-                        전문가 매칭 신청하기
-                    </Button>
+                    <Link href="/consultation/apply">
+                        <Button
+                            className="font-bold text-indigo-900 bg-white hover:bg-slate-100 px-8 h-14 text-[16px] rounded-none shadow-sm w-full sm:w-auto"
+                        >
+                            전문가 매칭 신청하기
+                        </Button>
+                    </Link>
                 </div>
             </div>
         </section>
@@ -424,6 +425,20 @@ const Footer = () => {
 export default function LandingClient() {
     return (
         <div className="min-h-screen bg-slate-50 font-sans selection:bg-indigo-900 selection:text-white">
+            {/* Task Tracking */}
+            {/*
+            - [x] 1. Database Schema Design (consultations table)
+                - [x] Create `consultations` table in Supabase
+                - [x] Set up Row Level Security (RLS) policies
+                - [x] Add `status` enum (pending, assigned, in_progress, completed)
+            - [x] 2. User-Facing Consultation Form (`/consultation/apply`)
+                - [x] Create responsive form page with Shadcn UI components
+                - [x] Implement form validation (Zod + React Hook Form)
+                - [x] Integrate Supabase submit logic
+                - [x] Add success confirmation state
+            - [x] 3. Landing Page Integration
+                - [x] Update '전문가 매칭 신청' button to route to new internal form
+            */}
             <NavigationBar />
             <main>
                 <Hero />
@@ -436,3 +451,4 @@ export default function LandingClient() {
         </div>
     );
 }
+```
