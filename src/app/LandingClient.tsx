@@ -68,7 +68,7 @@ const Hero = () => {
                     PSST 사업계획 방법론, 전략컨설팅 <br className="md:hidden" />
                     프레임워크 방법론 등을 융합하여 설계된 <br className="md:hidden" />
                     고도화된 경영 진단 도구입니다.
-                    <br className="hidden lg:block" />
+                    <br />
                     시장 기회 탐색부터 사업성 검증까지 <br className="md:hidden" />
                     7가지 핵심 영역을 입체적으로 <br className="md:hidden" />
                     정밀 분석합니다.
