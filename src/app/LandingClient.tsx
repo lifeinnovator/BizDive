@@ -57,21 +57,21 @@ const Hero = () => {
                         BizDive - 7D 기업경영 심층자가진단
                     </span>
                 </div>
-                <h1 className="text-[32px] sm:text-[48px] lg:text-[76px] font-extrabold tracking-tighter text-indigo-950 leading-[1.2] sm:leading-[1.1] mb-6 sm:mb-8 break-keep">
+                <h1 className="text-[36px] sm:text-[48px] lg:text-[76px] font-extrabold tracking-tighter text-indigo-950 leading-[1.2] sm:leading-[1.1] mb-6 sm:mb-8 break-keep">
                     직관을 넘어, <br />
                     데이터로 증명하는 <br />
                     비즈니스 경쟁력
                 </h1>
-                <p className="text-lg sm:text-xl text-slate-600 font-medium tracking-tight mb-4 max-w-3xl mx-auto leading-relaxed break-keep">
-                    본 기업현황 자가진단은 <br className="md:hidden" />
+                <p className="text-[17px] sm:text-xl text-slate-600 font-medium tracking-tight mb-4 max-w-3xl mx-auto leading-relaxed break-keep">
+                    본 기업경영 자가진단은 <br className="md:hidden" />
                     서비스 디자인 방법론(Double Diamond)과 <br className="md:hidden" />
                     PSST 사업계획 방법론, 전략컨설팅 <br className="md:hidden" />
-                    프레임워크 방법론 등을 융합하여 <br className="md:hidden" />
-                    설계된 고도화된 경영 진단 도구입니다.
+                    프레임워크 방법론 등을 융합하여 설계된 <br className="md:hidden" />
+                    고도화된 경영 진단 도구입니다.
                     <br className="hidden lg:block" />
                     시장 기회 탐색부터 사업성 검증까지 <br className="md:hidden" />
-                    7가지 핵심 영역을 <br className="md:hidden" />
-                    입체적으로 정밀 분석합니다.
+                    7가지 핵심 영역을 입체적으로 <br className="md:hidden" />
+                    정밀 분석합니다.
                 </p>
                 <p className="text-base sm:text-lg text-slate-500 font-medium tracking-tight mb-10 sm:mb-14 max-w-2xl mx-auto leading-relaxed break-keep">
                     이를 통해 기업은 현재의 성장 단계를 명확히 인지하고,
