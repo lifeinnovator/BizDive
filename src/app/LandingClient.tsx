@@ -176,11 +176,11 @@ const FounderExperience = () => {
         <section className="py-20 sm:py-32 bg-white px-6 md:px-12 border-b border-indigo-50">
             <div className="max-w-7xl mx-auto">
                 <div className="mb-12 sm:mb-24 md:w-2/3">
-                    <div className="flex flex-col items-start gap-4 mb-8">
+                    <div className="flex flex-col items-start gap-1 sm:gap-4 mb-6 sm:mb-8">
                         <span className="px-4 py-1.5 bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-lg text-[13px] font-bold tracking-[0.1em] uppercase shadow-sm">
                             For Founders
                         </span>
-                        <span className="text-[15px] sm:text-base font-bold text-slate-500">
+                        <span className="text-[14px] sm:text-base font-bold text-slate-500">
                             비즈니스의 입체적 진단이 필요한 기업가
                         </span>
                     </div>
@@ -235,11 +235,11 @@ const InstitutionExperience = () => {
                 <div className="w-full md:w-5/12 z-10 py-20 relative h-[400px] flex flex-col justify-center">
                     {/* Fixed Header */}
                     <div className="absolute top-0 left-0 pt-10">
-                        <div className="flex flex-col items-start gap-4 mb-8">
+                        <div className="flex flex-col items-start gap-1 sm:gap-4 mb-10 sm:mb-8">
                             <span className="px-4 py-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-lg text-[13px] font-bold tracking-[0.1em] uppercase shadow-sm">
                                 For Institutions
                             </span>
-                            <span className="text-[15px] sm:text-base font-bold text-slate-400">
+                            <span className="text-[14px] sm:text-base font-bold text-slate-400">
                                 데이터 기반의 스마트한 지원 체계가 필요한 기관
                             </span>
                         </div>
@@ -249,7 +249,7 @@ const InstitutionExperience = () => {
                     <motion.div
                         style={{
                             opacity: useTransform(scrollYProgress, [0, 0.1, 0.25], [1, 1, 0]),
-                            y: useTransform(scrollYProgress, [0, 0.1, 0.25], [0, 0, -20])
+                            y: useTransform(scrollYProgress, [0, 0.1, 0.25], [40, 40, 20])
                         }}
                         className="absolute inset-x-0"
                     >
@@ -300,77 +300,48 @@ const InstitutionExperience = () => {
                     </motion.div>
                 </div>
 
-                {/* Dashboard Mockup Right */}
-                <div className="w-full md:w-7/12 h-1/2 md:h-full flex items-center justify-end relative">
+                {/* Dashboard Mockup Right - Simplified for Mobile */}
+                <div className="hidden md:flex w-full md:w-7/12 h-1/2 md:h-full items-center justify-end relative">
                     <motion.div
                         style={{
                             y: useTransform(scrollYProgress, [0, 1], [150, -150]),
                         }}
-                        className="w-[120%] md:w-[130%] max-w-4xl bg-slate-900 border border-slate-800 shadow-2xl overflow-hidden p-8 md:p-12 absolute left-10 md:left-20"
-                    >
-                        {/* Mockup Top Bar */}
-                        <div className="flex items-center gap-2 mb-10 border-b border-slate-800 pb-5">
-                            <div className="flex gap-2">
-                                <div className="w-3 h-3 rounded-full bg-slate-700"></div>
-                                <div className="w-3 h-3 rounded-full bg-slate-700"></div>
-                                <div className="w-3 h-3 rounded-full bg-slate-700"></div>
-                            </div>
-                            <span className="text-slate-600 font-mono text-xs ml-4 tracking-widest">admin.bizdive.io/dashboard</span>
-                        </div>
-
-                        {/* Mockup Stats */}
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-10">
-                            <div className="bg-slate-950 border border-slate-800 p-8">
-                                <span className="text-slate-500 text-[13px] font-bold tracking-wider">총 참가 기업</span>
-                                <div className="text-[40px] font-bold mt-2 text-white font-mono">142</div>
-                            </div>
-                            <div className="bg-slate-950 border border-slate-800 p-8">
-                                <span className="text-slate-500 text-[13px] font-bold tracking-wider">진단 완료</span>
-                                <div className="text-[40px] font-bold mt-2 text-white font-mono">124</div>
-                            </div>
-                            <div className="bg-slate-950 border border-slate-800 p-8 hidden md:flex flex-col justify-center">
-                                <div className="w-full h-12 bg-white text-slate-950 flex items-center justify-center font-bold text-sm tracking-wide">
-                                    리포트 통합 다운로드
-                                </div>
-                            </div>
-                        </div>
-
                         {/* Mockup Table */}
                         <div className="bg-slate-950 border border-slate-800 p-8">
-                            <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-4 text-xs font-bold text-slate-500 tracking-wider">
-                                <div className="w-1/2">COMPANY INFO</div>
-                                <div className="w-1/4 text-right">SCORE</div>
-                                <div className="w-1/4 text-right">STATUS</div>
-                            </div>
-                            <div className="space-y-6">
-                                {[
-                                    { name: '테크스타트업 (주)', email: 'ceo@techstartup.co', score: 86, s: '완료' },
-                                    { name: '로컬크리에이터랩', email: 'hello@localcreator.kr', score: 72, s: '완료' },
-                                    { name: '에코이노베이션', email: 'contact@ecoinno.com', score: '-', s: '미응답' },
-                                    { name: '핀테크코리아', email: 'admin@fintechkr.io', score: 92, s: '완료' },
-                                ].map((row, i) => (
-                                    <div key={i} className="flex items-center justify-between text-sm">
-                                        <div className="w-1/2 flex items-center gap-4">
-                                            <div className="w-4 h-4 rounded-sm border border-slate-700 bg-slate-900"></div>
-                                            <div>
-                                                <div className="text-slate-300 font-bold">{row.name}</div>
-                                                <div className="text-slate-600 font-mono text-xs mt-0.5">{row.email}</div>
-                                            </div>
-                                        </div>
-                                        <div className="w-1/4 text-right font-mono text-slate-300 text-base">{row.score}</div>
-                                        <div className="w-1/4 text-right">
-                                            <span className={`text-[11px] px-2 py-1 font-bold ${row.s === '완료' ? 'bg-slate-800 text-slate-300' : 'bg-red-900/30 text-red-500'}`}>
-                                                {row.s}
-                                            </span>
+                        <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-4 text-xs font-bold text-slate-500 tracking-wider">
+                            <div className="w-1/2">COMPANY INFO</div>
+                            <div className="w-1/4 text-right">SCORE</div>
+                            <div className="w-1/4 text-right">STATUS</div>
+                        </div>
+                        <div className="space-y-6">
+                            {[
+                                { name: '테크스타트업 (주)', email: 'ceo@techstartup.co', score: 86, s: '완료' },
+                                { name: '로컬크리에이터랩', email: 'hello@localcreator.kr', score: 72, s: '완료' },
+                                { name: '에코이노베이션', email: 'contact@ecoinno.com', score: '-', s: '미응답' },
+                                { name: '핀테크코리아', email: 'admin@fintechkr.io', score: 92, s: '완료' },
+                            ].map((row, i) => (
+                                <div key={i} className="flex items-center justify-between text-sm">
+                                    <div className="w-1/2 flex items-center gap-4">
+                                        <div className="w-4 h-4 rounded-sm border border-slate-700 bg-slate-900"></div>
+                                        <div>
+                                            <div className="text-slate-300 font-bold">{row.name}</div>
+                                            <div className="text-slate-600 font-mono text-xs mt-0.5">{row.email}</div>
                                         </div>
                                     </div>
-                                ))}
-                            </div>
+                                    <div className="w-1/4 text-right font-mono text-slate-300 text-base">{row.score}</div>
+                                    <div className="w-1/4 text-right">
+                                        <span className={`text-[11px] px-2 py-1 font-bold ${row.s === '완료' ? 'bg-slate-800 text-slate-300' : 'bg-red-900/30 text-red-500'}`}>
+                                            {row.s}
+                                        </span>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
-                    </motion.div>
-                </div>
+                    </div>
+                </motion.div>
             </div>
-        </section>
+        </div>
+        </section >
     );
 };
 
