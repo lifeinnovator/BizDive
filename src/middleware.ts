@@ -11,7 +11,7 @@ export async function middleware(request: NextRequest) {
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
             cookieOptions: {
-                name: 'sb-bizdive-main-auth-token',
+                name: 'bizdive-main-session',
             },
             cookies: {
                 getAll() {
@@ -41,11 +41,14 @@ export async function middleware(request: NextRequest) {
 
     // Refresh the session
     const { data: { user } } = await supabase.auth.getUser()
+    
+    console.log(`Middleware [${pathname}]: User = ${user ? user.id : 'Anonymous'}`);
 
     // 1. Protect /dashboard and saved report routes
     if (pathname.startsWith('/dashboard') ||
         (pathname.startsWith('/report') && !pathname.startsWith('/report/preview'))) {
         if (!user) {
+            console.log(`Middleware: Redirecting ${pathname} to /login (Not Logged In)`);
             const url = request.nextUrl.clone()
             url.pathname = '/login'
             return NextResponse.redirect(url)

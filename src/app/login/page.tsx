@@ -54,17 +54,16 @@ export default function LoginPage() {
         setError(null);
 
         try {
-            const { error } = await supabase.auth.signInWithPassword({
+            const { data, error: signInError } = await supabase.auth.signInWithPassword({
                 email,
                 password
             });
 
-            if (error) {
-                console.error('Login Error:', error);
+            if (signInError) {
+                console.error('Login Error:', signInError);
                 setError('이메일 또는 비밀번호가 일치하지 않습니다.');
             } else {
-                const { data: { user } } = await supabase.auth.getUser();
-                if (user) {
+                if (data.user) {
                     // Always redirect to dashboard on the main site
                     router.push('/dashboard');
                 } else {
