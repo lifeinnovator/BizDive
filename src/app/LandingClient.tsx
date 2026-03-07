@@ -50,14 +50,14 @@ const NavigationBar = () => {
                                 나의 대시보드
                             </Link>
                             {userRole === 'super_admin' && (
-                                <Link href="/ops" className="text-[13px] sm:text-[15px] font-bold text-indigo-600 hover:text-indigo-900 transition-colors">
+                                <a href="https://admin.bizdive.kr/ops" className="text-[13px] sm:text-[15px] font-bold text-indigo-600 hover:text-indigo-900 transition-colors">
                                     운영 관리
-                                </Link>
+                                </a>
                             )}
                             {userRole === 'group_admin' && (
-                                <Link href="/admin" className="text-[13px] sm:text-[15px] font-bold text-indigo-600 hover:text-indigo-900 transition-colors">
+                                <a href="https://admin.bizdive.kr/admin" className="text-[13px] sm:text-[15px] font-bold text-indigo-600 hover:text-indigo-900 transition-colors">
                                     기관 관리
-                                </Link>
+                                </a>
                             )}
                         </>
                     ) : (

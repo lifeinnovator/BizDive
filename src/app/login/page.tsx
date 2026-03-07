@@ -65,14 +65,8 @@ export default function LoginPage() {
             } else {
                 const { data: { user } } = await supabase.auth.getUser();
                 if (user) {
-                    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
-                    if (profile?.role === 'super_admin') {
-                        router.push('/ops');
-                    } else if (profile?.role === 'group_admin') {
-                        router.push('/admin');
-                    } else {
-                        router.push('/dashboard');
-                    }
+                    // Always redirect to dashboard on the main site
+                    router.push('/dashboard');
                 } else {
                     router.push('/dashboard');
                 }
