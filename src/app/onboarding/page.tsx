@@ -101,7 +101,8 @@ export default function OnboardingPage() {
                 // But this form is "Onboarding" - usually for first time or profile update.
                 // If they came here, they probably want to do something. 
                 // Let's send to Diagnosis for now since they just filled out the "Start Diagnosis" form.
-                router.push('/diagnosis')
+                router.refresh()
+                window.location.href = '/diagnosis'
             } else {
                 // Guest User -> Save to Session -> Diagnosis
                 sessionStorage.setItem('bizdive_guest', JSON.stringify({
@@ -115,7 +116,8 @@ export default function OnboardingPage() {
                 }))
 
                 router.refresh()
-                router.push('/diagnosis')
+                // Use hard reload to ensure server-side data is picked up correctly
+                window.location.href = '/diagnosis'
             }
         } catch (error) {
             alert('오류가 발생했습니다.')
