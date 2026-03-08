@@ -81,6 +81,14 @@ export const getStageInfo = (score: number) => {
                 "* Scale-up: 기술, 제품, 서비스 등의 규모를 확대하여 폭발적인 성장을 도모하는 것",
                 "* TAM (Total Addressable Market): 제품이나 서비스가 도달할 수 있는 전체 시장 규모"
             ]
-        };
+        }
     }
 };
+
+export const STAGE_LABELS: Record<string, string> = {
+    P: '예비창업', E: '초기창업(3년이하)', V: '성장기(3-7년)', M: '중소/중견'
+}
+
+export const INDUSTRY_LABELS: Record<string, string> = {
+    I: 'IT/SaaS', H: '제조/소재/HW', L: '서비스/F&B/로컬', CT: '콘텐츠/IP/지식서비스'
+}
