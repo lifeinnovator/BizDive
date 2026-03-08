@@ -8,12 +8,14 @@ import { PrintButton, ExpertRequestButton, ReportHeaderActions } from '@/compone
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import GrowthAnalysis from '@/components/report/GrowthAnalysis'
-import { History, ArrowLeft, CheckCircle2, TrendingUp, HelpCircle } from 'lucide-react'
+import { History, ArrowLeft, CheckCircle2, TrendingUp, HelpCircle, MessageSquare, Target, Layers, Info } from 'lucide-react'
 import { getDiagnosisQuestions } from '@/lib/diagnosis-logic'
 import ConsultantBanner from '@/components/report/ConsultantBanner'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import DiagnosisRadarChart from '@/components/report/RadarChart'
+import { STAGE_UNIT_SCORES, STAGE_MAX_SCORES } from '@/lib/scoring-utils'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 interface ReportPageProps {
     params: Promise<{ id: string }>
@@ -94,8 +96,8 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
             }
         }
 
-        // 3. Fetch previous record and questions in parallel
-        const [previousRes, questions] = await Promise.all([
+        // 3. Fetch previous record, questions, and mentoring memos in parallel
+        const [previousRes, questions, memosRes] = await Promise.all([
             supabase
                 .from('diagnosis_records')
                 .select('*')
@@ -107,7 +109,18 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
             getDiagnosisQuestions({
                 stage: profile?.stage || 'P',
                 industry: profile?.industry || 'I'
-            })
+            }),
+            supabase
+                .from('mentoring_memos')
+                .select(`
+                    *,
+                    profiles:author_id (
+                        user_name,
+                        user_title
+                    )
+                `)
+                .eq('company_id', record.user_id)
+                .order('created_at', { ascending: false })
         ])
 
         const previousRecord = previousRes.data
@@ -253,105 +266,218 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 print:gap-4 print:grid-cols-1 print:break-inside-avoid">
+                    {/* Tabs Section */}
+                    <Tabs defaultValue="report" className="w-full">
+                        <TabsList className="grid w-full grid-cols-2 max-w-[400px] mb-8 bg-slate-100 p-1 rounded-xl">
+                            <TabsTrigger value="report" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm py-2.5 text-[14px] font-bold">
+                                상세 리포트
+                            </TabsTrigger>
+                            <TabsTrigger value="memos" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm py-2.5 text-[14px] font-bold">
+                                멘토링 메모
+                            </TabsTrigger>
+                        </TabsList>
 
-                        {/* Left Column: Radar Chart & Growth Analysis */}
-                        <div className="space-y-8 lg:space-y-10">
-                            {/* Radar Chart */}
-                            <Card className="shadow-lg border-gray-100/50 rounded-2xl print:shadow-none print:border h-fit overflow-hidden bg-white">
-                                <CardHeader className="pb-4 border-b border-gray-50 bg-slate-50/30">
-                                    <CardTitle className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3 text-slate-800">
-                                            <div className="p-2 bg-white rounded-xl shadow-sm border border-indigo-100 text-indigo-600">
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
+                        <TabsContent value="report" className="mt-0 space-y-8">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 print:gap-4 print:grid-cols-1 print:break-inside-avoid">
+                                {/* Left Column: Radar Chart & Growth Analysis */}
+                                <div className="space-y-8 lg:space-y-10">
+                                    {/* Radar Chart */}
+                                    <Card className="shadow-lg border-gray-100/50 rounded-2xl print:shadow-none print:border h-fit overflow-hidden bg-white">
+                                        <CardHeader className="pb-4 border-b border-gray-50 bg-slate-50/30">
+                                            <CardTitle className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3 text-slate-800">
+                                                    <div className="p-2 bg-white rounded-xl shadow-sm border border-indigo-100 text-indigo-600">
+                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
+                                                    </div>
+                                                    <span className="text-xl font-bold tracking-tight">7-Dimension 밸런스</span>
+                                                </div>
+                                                {previousRecord && (
+                                                    <div className="px-3 py-1 rounded-full bg-slate-100 text-xs font-medium text-slate-600 flex items-center gap-1.5 border border-slate-200">
+                                                        <History className="w-3.5 h-3.5" />
+                                                        이전 진단과 비교
+                                                    </div>
+                                                )}
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="flex justify-center py-10">
+                                            <DiagnosisRadarChart
+                                                sectionScores={dimensionScores}
+                                                previousScores={previousRecord?.dimension_scores as Record<string, number> | undefined}
+                                            />
+                                        </CardContent>
+                                    </Card>
+
+                                    {/* Company Overall Analysis (Mirroring Admin) */}
+                                    <Card className="shadow-lg border-gray-100/50 rounded-2xl print:shadow-none print:border h-fit overflow-hidden bg-white">
+                                        <CardHeader className="pb-4 border-b border-gray-50 bg-slate-50/30">
+                                            <CardTitle className="flex items-center gap-3 text-slate-800 text-xl font-bold tracking-tight">
+                                                <div className="p-2 bg-white rounded-xl shadow-sm border border-indigo-100 text-indigo-600">
+                                                    <Target size={20} />
+                                                </div>
+                                                기업 종합 분석
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="p-6 space-y-5">
+                                            {Object.keys(DIMENSION_KR).sort().map(key => {
+                                                const score = dimensionScores[key] || 0
+                                                const stage = profile?.stage || 'P'
+                                                const maxScore = STAGE_MAX_SCORES[stage]?.[key] || maxScores[key] || 15
+                                                const actualPoint = (score / 100) * maxScore
+                                                
+                                                return (
+                                                    <div key={key} className="space-y-2 group">
+                                                        <div className="flex items-center justify-between text-sm">
+                                                            <span className="font-bold text-slate-600 flex items-center gap-2">
+                                                                {DIMENSION_KR[key]}
+                                                            </span>
+                                                            <div className="flex items-baseline gap-1">
+                                                                <span className="text-lg font-black text-slate-900">
+                                                                    {actualPoint.toFixed(1)}
+                                                                </span>
+                                                                <span className="text-slate-400 text-xs font-bold">/ {maxScore.toFixed(1)}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden border border-slate-50">
+                                                            <div
+                                                                className="h-full rounded-full transition-all duration-1000 ease-out bg-indigo-500 shadow-sm"
+                                                                style={{ width: `${score}%` }}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                )
+                                            })}
+                                        </CardContent>
+                                    </Card>
+                                </div>
+
+                                {/* Right Column: Detailed Feedback List */}
+                                <Card className="shadow-lg border-gray-100/50 rounded-2xl print:shadow-none print:border h-fit bg-white border-t border-slate-100">
+                                    <CardHeader className="pb-5 border-b border-gray-50 bg-slate-50/30 print:pb-4">
+                                        <CardTitle className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2.5 text-slate-800">
+                                                <div className="p-1.5 bg-white rounded-lg shadow-sm border border-blue-100 text-blue-600">
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                                                </div>
+                                                <span className="text-[16px] font-bold tracking-tight">항목별 정밀 분석</span>
                                             </div>
-                                            <span className="text-xl font-bold tracking-tight">7-Dimension 밸런스</span>
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="p-6 space-y-7">
+                                        {Object.keys(dimensionScores).sort().map((dim, idx) => {
+                                            const score = dimensionScores[dim]
+                                            const stage = profile?.stage || 'P'
+                                            const maxScore = STAGE_MAX_SCORES[stage]?.[dim] || maxScores[dim] || 15
+                                            const rawScore = (score / 100) * maxScore
+
+                                            let level = 'mid'
+                                            if (score >= 80) level = 'high'
+                                            else if (score < 40) level = 'low'
+
+                                            const feedback = (FEEDBACK_DB as Record<string, any>)[dim as string]?.[level] || "분석 데이터가 충분하지 않습니다."
+
+                                            return (
+                                                <div key={dim} className="group print:break-inside-avoid">
+                                                    {/* Header: Title & Score */}
+                                                    <div className="flex justify-between items-end mb-2.5">
+                                                        <h4 className="text-[14.5px] font-bold text-gray-900 flex items-center gap-2">
+                                                            <span className="text-indigo-600 font-bold text-[13px]">{idx + 1}.</span>
+                                                            {DIMENSION_KR[dim] || dim}
+                                                        </h4>
+                                                        <div className="text-right">
+                                                            <span className="text-[18px] font-extrabold text-slate-800">
+                                                                {rawScore.toFixed(1)}
+                                                            </span>
+                                                            <span className="text-gray-400 font-medium text-[12.5px] ml-1">/ {maxScore}</span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Progress Bar */}
+                                                    <div className="h-2.5 w-full bg-gray-100 rounded-full overflow-hidden mb-3 border border-gray-100">
+                                                        <div
+                                                            className="h-full rounded-full transition-all duration-1000 ease-out shadow-sm bg-indigo-500"
+                                                            style={{ width: `${score}%` }}
+                                                        ></div>
+                                                    </div>
+
+                                                    {/* Feedback Box */}
+                                                    <div className="relative bg-indigo-50/30 border border-indigo-100/50 rounded-lg p-3.5 sm:p-4 flex gap-3.5 text-[13.5px] text-slate-700 leading-relaxed hover:bg-white hover:shadow-sm transition-all">
+                                                        <div className="flex-shrink-0 mt-0.5 text-indigo-500">
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
+                                                        </div>
+                                                        <p className="font-medium opacity-90">{feedback}</p>
+                                                    </div>
+                                                </div>
+                                            )
+                                        })}
+                                    </CardContent>
+                                </Card>
+                            </div>
+
+                            {/* Growth Analysis (Bottom) */}
+                            {previousRecord && (
+                                <div className="mt-8">
+                                    <GrowthAnalysis
+                                        current={record}
+                                        previous={previousRecord}
+                                        maxScores={maxScores}
+                                    />
+                                </div>
+                            )}
+                        </TabsContent>
+
+                        <TabsContent value="memos" className="mt-0">
+                            <Card className="shadow-lg border-gray-100 shadow-slate-200/50 rounded-2xl overflow-hidden bg-white">
+                                <CardHeader className="pb-5 border-b border-gray-50 bg-slate-50/50">
+                                    <CardTitle className="flex items-center gap-3 text-slate-800">
+                                        <div className="p-2 bg-white rounded-xl shadow-sm border border-emerald-100 text-emerald-600">
+                                            <MessageSquare size={20} />
                                         </div>
-                                        {previousRecord && (
-                                            <div className="px-3 py-1 rounded-full bg-slate-100 text-xs font-medium text-slate-600 flex items-center gap-1.5 border border-slate-200">
-                                                <History className="w-3.5 h-3.5" />
-                                                이전 진단과 비교
-                                            </div>
-                                        )}
+                                        <div>
+                                            <span className="text-xl font-bold tracking-tight block">멘토링 기록 및 메모</span>
+                                            <p className="text-xs text-slate-500 font-medium mt-0.5">컨설턴트가 작성한 피드백을 확인하실 수 있습니다.</p>
+                                        </div>
                                     </CardTitle>
                                 </CardHeader>
-                                <CardContent className="flex justify-center py-10">
-                                    <DiagnosisRadarChart
-                                        sectionScores={dimensionScores}
-                                        previousScores={previousRecord?.dimension_scores as Record<string, number> | undefined}
-                                    />
+                                <CardContent className="p-0">
+                                    {memosRes.data && memosRes.data.length > 0 ? (
+                                        <div className="divide-y divide-gray-100">
+                                            {memosRes.data.map((memo: any) => (
+                                                <div key={memo.id} className="p-6 hover:bg-slate-50/50 transition-colors">
+                                                    <div className="flex justify-between items-start mb-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold border border-indigo-100">
+                                                                {memo.profiles?.user_name?.[0] || 'C'}
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-[14px] font-bold text-slate-900">{memo.profiles?.user_name || '컨설턴트'}</p>
+                                                                <p className="text-[11px] text-slate-400 font-medium">{memo.profiles?.user_title || '전문 멘토'}</p>
+                                                            </div>
+                                                        </div>
+                                                        <span className="text-[12px] text-slate-400 font-medium">
+                                                            {new Date(memo.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                                        </span>
+                                                    </div>
+                                                    <div className="bg-white border border-slate-200 rounded-xl p-5 text-[14px] text-slate-700 leading-relaxed shadow-sm">
+                                                        {memo.content.split('\n').map((line: string, i: number) => (
+                                                            <p key={i} className={i > 0 ? 'mt-2' : ''}>{line}</p>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="py-20 text-center">
+                                            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100">
+                                                <MessageSquare className="w-8 h-8 text-slate-300" />
+                                            </div>
+                                            <h4 className="text-slate-900 font-bold mb-1">작성된 메모가 없습니다</h4>
+                                            <p className="text-slate-500 text-sm">컨설턴트의 전문적인 멘토링이 진행되면 이곳에 기록됩니다.</p>
+                                        </div>
+                                    )}
                                 </CardContent>
                             </Card>
-
-                            {/* Growth Analysis (Left Column) */}
-                            {previousRecord && (
-                                <GrowthAnalysis
-                                    current={record}
-                                    previous={previousRecord}
-                                    maxScores={maxScores}
-                                />
-                            )}
-                        </div>
-
-                        {/* Right Column: Detailed Feedback List */}
-                        <Card className="shadow-lg border-gray-100/50 rounded-2xl print:shadow-none print:border h-fit bg-white print:mt-4">
-                            <CardHeader className="pb-5 border-b border-gray-50 bg-slate-50/30 print:pb-4">
-                                <CardTitle className="flex items-center gap-2.5 text-slate-800">
-                                    <div className="p-1.5 bg-white rounded-lg shadow-sm border border-blue-100 text-blue-600">
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
-                                    </div>
-                                    <span className="text-[16px] font-bold tracking-tight">항목별 정밀 분석</span>
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-6 space-y-7">
-                                {Object.keys(dimensionScores).sort().map((dim, idx) => {
-                                    const score = dimensionScores[dim]
-                                    const maxScore = maxScores[dim] || 15
-                                    const rawScore = (score / 100) * maxScore
-
-                                    let level = 'mid'
-                                    if (score >= 80) level = 'high'
-                                    else if (score < 40) level = 'low'
-
-                                    const feedback = (FEEDBACK_DB as Record<string, any>)[dim as string]?.[level] || "분석 데이터가 충분하지 않습니다."
-
-                                    return (
-                                        <div key={dim} className="group print:break-inside-avoid">
-                                            {/* Header: Title & Score */}
-                                            <div className="flex justify-between items-end mb-2.5">
-                                                <h4 className="text-[14.5px] font-bold text-gray-900 flex items-center gap-2">
-                                                    <span className="text-indigo-600 font-bold text-[13px]">{idx + 1}.</span>
-                                                    {DIMENSION_KR[dim] || dim}
-                                                </h4>
-                                                <div className="text-right">
-                                                    <span className="text-[18px] font-extrabold text-slate-800">
-                                                        {rawScore.toFixed(1)}
-                                                    </span>
-                                                    <span className="text-gray-400 font-medium text-[12.5px] ml-1">/ {maxScore}</span>
-                                                </div>
-                                            </div>
-
-                                            {/* Progress Bar */}
-                                            <div className="h-2.5 w-full bg-gray-100 rounded-full overflow-hidden mb-3 border border-gray-100">
-                                                <div
-                                                    className="h-full rounded-full transition-all duration-1000 ease-out shadow-sm bg-amber-400"
-                                                    style={{ width: `${score}%` }}
-                                                ></div>
-                                            </div>
-
-                                            {/* Feedback Box */}
-                                            <div className="relative bg-amber-50/60 border border-amber-200 rounded-lg p-3.5 sm:p-4 flex gap-3.5 text-[13.5px] text-slate-700 leading-relaxed hover:bg-amber-50 hover:shadow-sm transition-all">
-                                                <div className="flex-shrink-0 mt-0.5 text-amber-500">
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
-                                                </div>
-                                                <p className="font-medium opacity-90">{feedback}</p>
-                                            </div>
-                                        </div>
-                                    )
-                                })}
-                            </CardContent>
-                        </Card>
-                    </div>
+                        </TabsContent>
+                    </Tabs>
 
                     <ConsultantBanner />
                 </main>

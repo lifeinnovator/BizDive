@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -23,6 +24,7 @@ interface Props {
 }
 
 export default function DiagnosisHistoryList({ records, profileName, profileCompany }: Props) {
+    const router = useRouter()
     const [expandedId, setExpandedId] = useState<string | null>(null)
 
     if (!records || records.length === 0) {
@@ -52,11 +54,14 @@ export default function DiagnosisHistoryList({ records, profileName, profileComp
                 const isExpanded = expandedId === record.id
 
                 return (
-                    <div key={record.id} className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all duration-200">
-                        {/* Main Card Row */}
-                        <div className="flex items-center h-[88px]">
+                    <div key={record.id} className="group overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all duration-200 relative">
+                        {/* Main Card Row - Fully Clickable */}
+                        <div 
+                            onClick={() => router.push(`/report/${record.id}`)}
+                            className="flex items-center h-[88px] cursor-pointer"
+                        >
                             {/* Score */}
-                            <div className={`w-[88px] h-full flex flex-col items-center justify-center border-r border-gray-100 bg-gray-50 flex-shrink-0 ${isExpanded ? 'bg-indigo-50/50' : ''}`}>
+                            <div className={`w-[88px] h-full flex flex-col items-center justify-center border-r border-gray-100 bg-gray-50 flex-shrink-0 group-hover:bg-indigo-50/30 transition-colors ${isExpanded ? 'bg-indigo-50/50' : ''}`}>
                                 <span className={`text-[22px] font-bold tracking-tight ${record.total_score >= 80 ? 'text-green-600' : record.total_score >= 50 ? 'text-indigo-600' : 'text-rose-500'}`}>
                                     {record.total_score.toFixed(1)}<span className="text-xs font-normal text-gray-400 ml-0.5">점</span>
                                 </span>
@@ -64,11 +69,11 @@ export default function DiagnosisHistoryList({ records, profileName, profileComp
                                     Stage {record.stage_result}
                                 </span>
                             </div>
-
+ 
                             {/* Content */}
                             <div className="flex-grow px-4 py-2 flex justify-between items-center min-w-0">
                                 <div className="min-w-0">
-                                    <h4 className={`text-[15px] font-bold mb-0.5 ${isExpanded ? 'text-indigo-600' : 'text-gray-900'}`}>
+                                    <h4 className={`text-[15px] font-bold mb-0.5 group-hover:text-indigo-600 transition-colors ${isExpanded ? 'text-indigo-600' : 'text-gray-900'}`}>
                                         {stageInfo.stageName}
                                     </h4>
                                     <p className="text-gray-500 text-[11px] line-clamp-1 mb-1.5">{stageInfo.shortDesc}</p>
@@ -89,20 +94,23 @@ export default function DiagnosisHistoryList({ records, profileName, profileComp
                                         </div>
                                     </div>
                                 </div>
-
-                                <div className="flex items-center gap-2 shrink-0 ml-3">
-                                    <DeleteRecordButton recordId={record.id} />
+ 
+                                <div className="flex items-center gap-2 shrink-0 ml-3 z-10">
+                                    <div onClick={(e) => e.preventDefault()}>
+                                        <DeleteRecordButton recordId={record.id} />
+                                    </div>
                                     <button
-                                        onClick={() => setExpandedId(isExpanded ? null : record.id)}
-                                        className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${isExpanded ? 'bg-indigo-50 text-indigo-600' : 'bg-gray-50 text-gray-500 hover:bg-indigo-50 hover:text-indigo-600'}`}
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            setExpandedId(isExpanded ? null : record.id);
+                                        }}
+                                        className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${isExpanded ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-50 text-gray-500 hover:bg-indigo-100 hover:text-indigo-600'}`}
                                     >
                                         <BookOpen size={13} />
                                         종합 분석
                                         {isExpanded ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
                                     </button>
-                                    <Link href={`/report/${record.id}`} className="hidden sm:flex items-center gap-1 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[11px] font-bold transition-all">
-                                        상세 리포트 <ChevronRight size={12} />
-                                    </Link>
                                 </div>
                             </div>
                         </div>

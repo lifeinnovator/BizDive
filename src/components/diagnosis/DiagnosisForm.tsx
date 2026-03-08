@@ -7,6 +7,7 @@ import { Database } from '@/types/database'
 import QuestionSection from './QuestionSection'
 import { Button } from '@/components/ui/button'
 import { CheckCircle2, X } from 'lucide-react'
+import { STAGE_UNIT_SCORES, STAGE_MAX_SCORES, computeSectionScore, getGrade } from '@/lib/scoring-utils'
 
 type Question = Database['public']['Tables']['questions']['Row']
 
@@ -69,45 +70,39 @@ export default function DiagnosisForm({
         const maxScores: Record<string, number> = {}
         let scoreSum = 0
 
-        sections.forEach(sec => {
-            let sectionEarned = 0
-            let sectionTotal = 0
+        const userStage = (profile?.stage as string) || 'P'
+        const unitScores = STAGE_UNIT_SCORES[userStage] || STAGE_UNIT_SCORES['P']
 
-            // Map questions to { weight, checked } for utility
+        sections.forEach(sec => {
+            const unitScore = unitScores[sec.id] || 1.0
+
+            // Map questions to { points, checked } for utility
             const items = sec.questions.map((q, idx) => {
                 const questionKey = `${sec.id}_${idx}`
-                const weight = q.score_weight || 1
                 const checked = answers[questionKey] === true
-                return { weight, checked }
+                return { points: unitScore, checked }
             })
 
-            items.forEach(item => {
-                sectionTotal += item.weight
-                if (item.checked) {
-                    sectionEarned += item.weight
-                }
-            })
+            const result = computeSectionScore(items)
 
             // Section Score for Radar Chart (0-100%)
-            calculatedSectionScores[sec.id] = sectionTotal > 0
-                ? Math.round((sectionEarned / sectionTotal) * 100 * 10) / 10
-                : 0
+            calculatedSectionScores[sec.id] = result.score
 
             // Raw Scores for Detailed Breakdown
-            earnedScores[sec.id] = sectionEarned
-            maxScores[sec.id] = sectionTotal
+            earnedScores[sec.id] = result.earned
+            maxScores[sec.id] = result.total
 
-            // Total Score for Result (Sum of all Earned Weights)
-            scoreSum += sectionEarned
+            // Total Score for Result (Sum of all Earned Points)
+            scoreSum += result.earned
         })
 
         return {
-            totalScore: scoreSum,
+            totalScore: Math.round(scoreSum * 10) / 10,
             sectionScores: calculatedSectionScores,
             sectionEarnedScores: earnedScores,
             sectionMaxScores: maxScores
         }
-    }, [answers, sections])
+    }, [answers, sections, profile])
 
     const handleAnswerChange = (questionId: string, checked: boolean) => {
         setAnswers(prev => ({
@@ -129,7 +124,7 @@ export default function DiagnosisForm({
             const { createClient } = await import('@/lib/supabase');
             const supabase = createClient();
             
-            const stageResult = (await import('@/lib/scoring-utils')).getGrade(totalScore);
+            const stageResult = getGrade(totalScore);
 
             const { data: recordData, error } = await supabase.from('diagnosis_records').insert({
                 user_id: !isGuest && userId ? userId : null,
