@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TrendingUp, TrendingDown, Minus, ArrowUpRight, Trophy, History } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 
+import { ITEMIZED_DIMENSION_KR } from '@/data/feedback'
+
 interface DiagnosisRecord {
     total_score: number
     dimension_scores: Record<string, number>
@@ -15,16 +17,6 @@ interface GrowthAnalysisProps {
     maxScores: Record<string, number>
 }
 
-const DIMENSION_KR: Record<string, string> = {
-    D1: '시장 기회',
-    D2: '비즈니스 모델',
-    D3: '해결 전략',
-    D4: '조직 역량',
-    D5: '기술력/성장성',
-    D6: '재무 건전성',
-    D7: '경영 관리'
-}
-
 export default function GrowthAnalysis({ current, previous, maxScores }: GrowthAnalysisProps) {
     if (!previous) return null
 
@@ -34,7 +26,7 @@ export default function GrowthAnalysis({ current, previous, maxScores }: GrowthA
     const fmt = (num: number) => Math.abs(num).toFixed(1)
 
     // Calculate dimension differences (Using RAW Scores)
-    const dimDiffs = Object.keys(DIMENSION_KR).map(key => {
+    const dimDiffs = Object.keys(ITEMIZED_DIMENSION_KR).map(key => {
         const max = maxScores[key] || 15
         const curNorm = current.dimension_scores[key] || 0
         const prevNorm = previous.dimension_scores[key] || 0
@@ -44,7 +36,7 @@ export default function GrowthAnalysis({ current, previous, maxScores }: GrowthA
 
         return {
             key,
-            name: DIMENSION_KR[key],
+            name: ITEMIZED_DIMENSION_KR[key],
             current: curRaw,
             previous: prevRaw,
             diff: curRaw - prevRaw

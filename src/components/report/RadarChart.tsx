@@ -10,20 +10,11 @@ import {
     ResponsiveContainer,
 } from 'recharts'
 
+import { ITEMIZED_DIMENSION_KR } from '@/data/feedback'
+
 interface RadarChartProps {
     sectionScores: Record<string, number>;
     previousScores?: Record<string, number>;
-}
-
-// Map Dimensions D1-D7 to Names
-const DIMENSION_NAMES: Record<string, string> = {
-    D1: '시장 기회',
-    D2: '비즈니스 모델',
-    D3: '해결 전략',
-    D4: '조직 역량',
-    D5: '기술력/성장성',
-    D6: '재무 건전성',
-    D7: '경영 관리'
 }
 
 const SECTIONS = ['D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7'];
@@ -36,7 +27,7 @@ export default function DiagnosisRadarChart({ sectionScores, previousScores }: R
     }, [])
 
     const chartData = SECTIONS.map((key) => ({
-        subject: DIMENSION_NAMES[key] || key,
+        subject: ITEMIZED_DIMENSION_KR[key] || key,
         A: sectionScores[key] || 0,
         B: previousScores ? (previousScores[key] || 0) : 0,
         fullMark: 100,
