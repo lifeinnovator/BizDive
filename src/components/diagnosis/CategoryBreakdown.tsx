@@ -12,7 +12,7 @@ interface CategoryBreakdownProps {
 }
 
 const SECTIONS = [
-    { id: 'D1', title: '경영전략/리더쉽', maxScore: 100 },
+    { id: 'D1', title: '경영전략/리더십', maxScore: 100 },
     { id: 'D2', title: '비즈니스 모델', maxScore: 100 },
     { id: 'D4', title: '조직/인사', maxScore: 100 },
     { id: 'D3', title: '마케팅/영업', maxScore: 100 },

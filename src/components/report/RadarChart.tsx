@@ -17,7 +17,7 @@ interface RadarChartProps {
 
 // Map Dimensions D1-D7 to Names
 const DIMENSION_NAMES: Record<string, string> = {
-    D1: '경영전략/리더쉽',
+    D1: '경영전략/리더십',
     D2: '비즈니스 모델',
     D3: '마케팅/영업',
     D4: '조직/인사',

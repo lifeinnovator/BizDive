@@ -3,7 +3,7 @@ export const revalidate = 0
 
 import { createClient } from '@/lib/supabase-server'
 import { notFound, redirect } from 'next/navigation'
-import { FEEDBACK_DB, getStageInfo } from '@/data/feedback'
+import { FEEDBACK_DB, getStageInfo, ITEMIZED_DIMENSION_KR } from '@/data/feedback'
 import { PrintButton, ExpertRequestButton, ReportHeaderActions } from '@/components/report/ReportActions'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -148,7 +148,7 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
         }
 
         const DIMENSION_KR: Record<string, string> = {
-            D1: '경영전략/리더쉽',
+            D1: '경영전략/리더십',
             D2: '비즈니스 모델',
             D4: '조직/인사',
             D3: '마케팅/영업',
@@ -336,7 +336,8 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
                                             </CardTitle>
                                         </CardHeader>
                                         <CardContent className="p-6 space-y-4">
-                                            {Object.keys(DIMENSION_KR).map(key => {
+                                            {/* Comprehensive analysis order: 1, 2, 4, 3, 5, 6, 7 */}
+                                            {['D1', 'D2', 'D4', 'D3', 'D5', 'D6', 'D7'].map(key => {
                                                 const score = dimensionScores[key] || 0
                                                 const stage = profile?.stage || 'P'
                                                 const maxScore = STAGE_MAX_SCORES[stage]?.[key] || 15
@@ -381,42 +382,46 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="p-6 space-y-7">
-                                        {Object.keys(dimensionScores).map((dim, idx) => {
-                                            const score = dimensionScores[dim]
+                                        {/* Itemized analysis order: 1, 2, 3, 4, 5, 6, 7 */}
+                                        {['D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7'].map((dim, idx) => {
+                                            const score = dimensionScores[dim] || 0
                                             const stage = profile?.stage || 'P'
-                                            const maxScore = STAGE_MAX_SCORES[stage]?.[dim] || maxScores[dim] || 15
+                                            const maxScore = STAGE_MAX_SCORES[stage]?.[dim] || 15
                                             const rawScore = (score / 100) * maxScore
 
-                                            let level = 'mid'
+                                            let level: 'low' | 'mid' | 'high' = 'mid'
                                             if (score >= 80) level = 'high'
                                             else if (score < 40) level = 'low'
 
                                             const feedback = (FEEDBACK_DB as Record<string, any>)[dim as string]?.[level] || "분석 데이터가 충분하지 않습니다."
 
                                             return (
-                                                <div key={dim} className="group print:break-inside-avoid">
-                                                    {/* Header: Title & Score */}
-                                                    <div className="flex justify-between items-center mb-3">
-                                                        <h4 className="text-[14.5px] font-bold text-gray-900 flex items-center gap-2">
-                                                            <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[11px] text-slate-500 font-bold">
-                                                                {idx + 1}
-                                                            </div>
-                                                            {DIMENSION_KR[dim] || dim}
+                                                <div key={dim} className="space-y-3 group print:break-inside-avoid">
+                                                    <div className="flex justify-between items-baseline">
+                                                        <h4 className="text-[13px] font-bold text-slate-700 flex items-center gap-2">
+                                                            <span className="w-5 h-5 rounded-md bg-indigo-50 text-indigo-500 flex items-center justify-center text-[11px] shrink-0">{idx + 1}</span>
+                                                            {ITEMIZED_DIMENSION_KR[dim]}
                                                         </h4>
-                                                        <div className="bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
-                                                            <span className="text-[15px] font-black text-indigo-600">
+                                                        <div className="flex items-baseline gap-1">
+                                                            <span className="text-[12px] font-black text-indigo-600">
                                                                 {rawScore.toFixed(1)}
                                                             </span>
-                                                            <span className="text-gray-400 font-bold text-[11px] ml-1">/ {maxScore.toFixed(1)}</span>
+                                                            <span className="text-slate-400 text-[10px] font-bold">/ {maxScore.toFixed(1)}</span>
                                                         </div>
                                                     </div>
 
+                                                    {/* Progress Bar */}
+                                                    <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden border border-slate-50">
+                                                        <div
+                                                            className={`h-full rounded-full transition-all duration-1000 ease-out ${getProgressBarColor(score)} shadow-sm`}
+                                                            style={{ width: `${score}%` }}
+                                                        />
+                                                    </div>
+
                                                     {/* Feedback Box */}
-                                                    <div className="relative bg-indigo-50/30 border border-indigo-100/50 rounded-lg p-3.5 sm:p-4 flex gap-3.5 text-[13.5px] text-slate-700 leading-relaxed hover:bg-white hover:shadow-sm transition-all">
-                                                        <div className="flex-shrink-0 mt-0.5 text-indigo-500">
-                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
-                                                        </div>
-                                                        <p className="font-medium opacity-90">{feedback}</p>
+                                                    <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 text-[12px] text-slate-600 leading-relaxed flex gap-3 group-hover:bg-white transition-colors">
+                                                        <span className="text-amber-500 shrink-0 mt-0.5">💡</span>
+                                                        <p className="font-medium">{feedback}</p>
                                                     </div>
                                                 </div>
                                             )
