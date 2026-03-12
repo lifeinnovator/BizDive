@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import DiagnosisRadarChart from '@/components/report/RadarChart'
 import { STAGE_UNIT_SCORES, STAGE_MAX_SCORES } from '@/lib/scoring-utils'
+import { generateGrowthRoadmap } from '@/utils/roadmapEngine'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 interface ReportPageProps {
@@ -325,46 +326,45 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
                                         </CardContent>
                                     </Card>
 
-                                    {/* Company Overall Analysis (Mirroring Admin) */}
+                                    {/* Company Growth Roadmap (Replacing Overall Analysis) */}
                                     <Card className="shadow-lg border-gray-100/50 rounded-2xl print:shadow-none print:border h-fit overflow-hidden bg-white">
                                         <CardHeader className="pb-4 border-b border-gray-50 bg-slate-50/30">
                                             <CardTitle className="flex items-center gap-3 text-slate-800 text-xl font-bold tracking-tight">
                                                 <div className="p-2 bg-white rounded-xl shadow-sm border border-indigo-100 text-indigo-600">
                                                     <Target size={20} />
                                                 </div>
-                                                기업 종합 분석
+                                                BizDive 성장 로드맵
                                             </CardTitle>
                                         </CardHeader>
                                         <CardContent className="p-6 space-y-4">
-                                            {/* Comprehensive analysis order: 1, 2, 4, 3, 5, 6, 7 */}
-                                            {['D1', 'D2', 'D4', 'D3', 'D5', 'D6', 'D7'].map(key => {
-                                                const score = dimensionScores[key] || 0
-                                                const stage = profile?.stage || 'P'
-                                                const maxScore = STAGE_MAX_SCORES[stage]?.[key] || 15
-                                                const actualPoint = (score / 100) * maxScore
-                                                
-                                                return (
-                                                    <div key={key} className="space-y-1.5 group">
-                                                        <div className="flex items-center justify-between text-[13px]">
-                                                            <span className="font-bold text-slate-600 flex items-center gap-2">
-                                                                {getStatusIcon(score)} {DIMENSION_KR[key]}
-                                                            </span>
-                                                            <div className="flex items-baseline gap-1">
-                                                                <span className="text-lg font-black text-slate-900">
-                                                                    {actualPoint.toFixed(1)}
-                                                                </span>
-                                                                <span className="text-slate-400 text-xs font-bold">/ {maxScore.toFixed(1)}</span>
-                                                            </div>
+                                            {(() => {
+                                                const industry = profile?.industry || 'IT/SW/SaaS';
+                                                const stage = profile?.stage || '예비창업';
+                                                const roadmapData = generateGrowthRoadmap(
+                                                    dimensionScores as any,
+                                                    totalScore,
+                                                    industry,
+                                                    stage
+                                                );
+
+                                                return roadmapData.actions.map((action, idx) => (
+                                                    <div key={idx} className="space-y-2 group p-4 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-white transition-colors">
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <Badge variant="outline" className={`
+                                                                ${action.priority === 1 ? 'border-rose-200 text-rose-600 bg-rose-50' : ''}
+                                                                ${action.priority === 2 ? 'border-blue-200 text-blue-600 bg-blue-50' : ''}
+                                                                ${action.priority === 3 ? 'border-emerald-200 text-emerald-600 bg-emerald-50' : ''}
+                                                            `}>
+                                                                {action.priority}순위 액션
+                                                            </Badge>
+                                                            <span className="font-bold text-[14px] text-slate-800">{action.title}</span>
                                                         </div>
-                                                        <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden border border-slate-50">
-                                                            <div
-                                                                className={`h-full rounded-full transition-all duration-1000 ease-out ${getProgressBarColor(score)} shadow-sm`}
-                                                                style={{ width: `${score}%` }}
-                                                            />
-                                                        </div>
+                                                        <p className="text-[13px] text-slate-600 leading-relaxed font-medium">
+                                                            {action.description}
+                                                        </p>
                                                     </div>
-                                                )
-                                            })}
+                                                ));
+                                            })()}
                                         </CardContent>
                                     </Card>
                                 </div>

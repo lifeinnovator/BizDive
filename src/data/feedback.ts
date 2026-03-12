@@ -38,13 +38,13 @@ export const FEEDBACK_DB: Record<string, { low: string; mid: string; high: strin
 };
 
 export const DIMENSION_KR: Record<string, string> = {
-    D1: '경영전략/리더십',
-    D2: '비즈니스 모델',
-    D4: '조직/인사',
-    D3: '마케팅/영업',
-    D5: '기술/R&D',
-    D6: '재무/자금',
-    D7: '경영/ESG'
+    D1: '시장 기회',
+    D2: '문제 정의',
+    D3: '해결 가치',
+    D4: '실행 역량',
+    D5: '기술/구현',
+    D6: '비즈니스 모델',
+    D7: '성장 전략'
 }
 
 export const ITEMIZED_DIMENSION_KR: Record<string, string> = {
