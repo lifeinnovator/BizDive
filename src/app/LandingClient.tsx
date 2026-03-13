@@ -153,10 +153,10 @@ const UserPathSelection = () => {
                             </div>
                             <h3 className="text-2xl font-bold text-indigo-950 mb-4 tracking-tight">기업가 / 예비 창업자</h3>
                             <p className="text-slate-500 mb-8 font-medium leading-relaxed text-[15px] sm:text-base break-keep">
-                                "내 아이디어의 등급은?"<br />
-                                7단계 핵심 지표 정밀 분석과 <br className="sm:hidden" />
-                                맞춤형 액션 플랜 리포트를 통해 <br className="sm:hidden" />
-                                비즈니스의 현재를 확인하세요.
+                                "성장의 흔적, 데이터로 관리하세요."<br />
+                                일회성 진단에 그치지 않고, 누적된 데이터를 통해 <br className="sm:hidden" />
+                                기업의 성장 단계별 궤적과 핵심 경쟁력을 <br className="sm:hidden" />
+                                지속적으로 관리하고 향상시키세요.
                             </p>
                         </div>
                         <Link href="/onboarding" className="w-full">
@@ -184,10 +184,10 @@ const UserPathSelection = () => {
                             </div>
                             <h3 className="text-2xl font-bold text-slate-900 mb-4 tracking-tight">기관 / 지원사업 담당자</h3>
                             <p className="text-slate-500 mb-8 font-medium leading-relaxed text-[15px] sm:text-base break-keep">
-                                "지원사업의 성과, 입체적인 데이터로."<br />
-                                지원사업 효과의 정량적 지표 산출과 <br className="sm:hidden" />
-                                기업별 성장 데이터 추적 및 통합 관리를 통해 <br className="sm:hidden" />
-                                데이터 기반의 스마트한 지원 체계를 경험하세요.
+                                "지원사업 성과관리의 새로운 표준."<br />
+                                지원사업 과제별 맞춤형 정량 지표 산출부터 <br className="sm:hidden" />
+                                참여 기업의 성장 데이터 추적까지 통합 관리하세요. <br className="sm:hidden" />
+                                <span className="text-indigo-600 font-bold">(※ 지원사업/과제당 과금 모델로 운영)</span>
                             </p>
                         </div>
                         <Link href="https://bizdive.kr/admin/demo" className="mt-auto">
@@ -233,7 +233,7 @@ const FounderExperience = () => {
                     {[
                         { step: '01', title: '7D 핵심 지표 해부', desc: '시장성, 경쟁력, 수익성 등 7가지 다각도 관점에서 비즈니스 모델을 파편부터 결합까지 검증합니다.' },
                         { step: '02', title: '등급 산출 알고리즘', desc: '직관적이고 치밀하게 짜인 로직을 바탕으로 현재 수준을 정확하게 계산된 점수와 등급으로 반환합니다.' },
-                        { step: '03', title: '맞춤형 액션 플랜', desc: '부족한 지표를 메우기 위해 현재 단계에서 당장 실행해야 하는 액션과 전략 프레임워크를 제언합니다.' },
+                        { step: '03', title: '누적 성장 궤적 관리', desc: '진단 결과를 축적하여 기업의 성장 단계별 변화를 한눈에 파악하고, 다음 단계 도약을 위한 지속적인 경영 제언을 제공합니다.' },
                     ].map((item, i) => (
                         <motion.div
                             key={i}

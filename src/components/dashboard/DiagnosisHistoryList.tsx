@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Building, User, Calendar, ChevronRight, ChevronDown, CheckCircle2, BookOpen, Plus } from 'lucide-react'
-import { getStageInfo } from '@/data/feedback'
+import { getGradeInfo } from '@/data/feedback'
 import DeleteRecordButton from '@/components/dashboard/DeleteRecordButton'
 
 interface Record {
@@ -49,7 +49,7 @@ export default function DiagnosisHistoryList({ records, profileName, profileComp
     return (
         <div className="space-y-4">
             {records.map((record) => {
-                const stageInfo = getStageInfo(record.total_score)
+                const stageInfo = getGradeInfo(record.total_score)
 
                 return (
                     <div key={record.id} className="group overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all duration-200 relative">
@@ -60,22 +60,8 @@ export default function DiagnosisHistoryList({ records, profileName, profileComp
                         >
                             {/* Score */}
                             <div className="w-[88px] h-full flex flex-col items-center justify-center border-r border-gray-100 bg-gray-50 flex-shrink-0 group-hover:bg-indigo-50/30 transition-colors">
-                                <span className={`text-[22px] font-bold tracking-tight ${record.total_score >= 80 ? 'text-green-600' : record.total_score >= 50 ? 'text-indigo-600' : 'text-rose-500'}`}>
-                                    {record.total_score.toFixed(1)}<span className="text-xs font-normal text-gray-400 ml-0.5">점</span>
-                                </span>
-                                <span className={`mt-0.5 text-[9px] px-1.5 py-0.5 rounded-full font-medium ${record.total_score >= 80 ? 'bg-green-100 text-green-700' : record.total_score >= 50 ? 'bg-indigo-100 text-indigo-700' : 'bg-rose-100 text-rose-700'}`}>
-                                    Stage {(() => {
-                                        if (!record.stage_result) return '-';
-                                        if (record.stage_result.startsWith('{')) {
-                                            try {
-                                                const parsed = JSON.parse(record.stage_result);
-                                                return parsed.grade || record.stage_result;
-                                            } catch (e) {
-                                                return record.stage_result;
-                                            }
-                                        }
-                                        return record.stage_result;
-                                    })()}
+                                <span className={`text-[26px] font-bold tracking-tight ${record.total_score >= 80 ? 'text-green-600' : record.total_score >= 50 ? 'text-indigo-600' : 'text-rose-500'}`}>
+                                    {record.total_score.toFixed(1)}<span className="text-sm font-normal text-gray-400 ml-0.5">점</span>
                                 </span>
                             </div>
  

@@ -53,7 +53,7 @@ const getStrategyLevel = (totalScore: number) => {
 /**
  * Retrieves the specific prescription for a dimension based on its score
  */
-const getPrescription = (dimensionKey: string, score: number) => {
+export const getPrescription = (dimensionKey: string, score: number) => {
   const cards = ROADMAP_PRESCRIPTIONS[dimensionKey];
   if (!cards || cards.length === 0) return '해당 지표에 대한 데이터가 부족합니다.';
   

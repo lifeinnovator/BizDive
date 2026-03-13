@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { getStageInfo } from '@/data/feedback';
+import { getGradeInfo } from '@/data/feedback';
 
 interface DiagnosisDetailProps {
     totalScore: number;
@@ -18,7 +18,7 @@ const DiagnosisDetail: React.FC<DiagnosisDetailProps> = ({ totalScore }) => {
         );
     }
 
-    const stageInfo = getStageInfo(totalScore);
+    const stageInfo = getGradeInfo(totalScore);
 
     if (!stageInfo) return null;
 

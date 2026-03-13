@@ -9,7 +9,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import DiagnosisRadarChart from '@/components/report/RadarChart'
-import { FEEDBACK_DB, getStageInfo } from '@/data/feedback'
+import { FEEDBACK_DB, getGradeInfo } from '@/data/feedback'
+import { ROADMAP_PRESCRIPTIONS } from '@/data/roadmapData'
 import { getGrade } from '@/lib/scoring-utils'
 import { CheckCircle2, HelpCircle, ArrowLeft, Save, Loader2, Lock, Phone, X, User, Mail, Building2 } from 'lucide-react'
 import {
@@ -43,7 +44,7 @@ interface PreviewData {
 }
 
 const DIMENSION_KR: Record<string, string> = {
-    D1: '경영전략/리더십', D2: '비즈니스 모델', D4: '조직/인사', D3: '마케팅/영업', D5: '기술/R&D', D6: '재무/자금', D7: '경영/ESG'
+    D1: '시장 기회', D2: '문제 정의', D3: '해결 가치', D4: '실행 역량', D5: '기술/구현', D6: '비즈니스 모델', D7: '성장 전략'
 }
 
 const STAGE_LABELS: Record<string, string> = {
@@ -90,7 +91,12 @@ export default function ReportPreviewPage() {
     }
 
     const { totalScore, sectionScores, sectionMaxScores, profile, isGuest, userId, answers, round, projectId } = data
-    const stageInfo = getStageInfo(totalScore)
+    const stageInfo = getGradeInfo(
+        totalScore, 
+        sectionScores, 
+        profile.stage || 'P', 
+        profile.industry || 'I'
+    )
     const profileStageLabel = STAGE_LABELS[profile.stage || ''] || profile.stage || ''
     const profileIndustryLabel = INDUSTRY_LABELS[profile.industry || ''] || profile.industry || ''
 
@@ -353,7 +359,7 @@ export default function ReportPreviewPage() {
                             <div>
                                 <div className="flex items-center gap-3 mb-2">
                                     <Badge variant="secondary" className="bg-white/20 text-white hover:bg-white/30 border-none text-xs">
-                                        Stage {getGrade(totalScore)}
+                                        {getGrade(totalScore)} 등급
                                     </Badge>
                                     <Badge variant="outline" className="border-white/30 text-white hover:bg-white/10 text-xs">
                                         {profileStageLabel} | {profileIndustryLabel}
@@ -453,11 +459,9 @@ export default function ReportPreviewPage() {
                                 const maxScore = sectionMaxScores[dim] || 15
                                 const rawScore = (score / 100) * maxScore
 
-                                let level: 'high' | 'mid' | 'low' = 'mid'
-                                if (score >= 80) level = 'high'
-                                else if (score < 40) level = 'low'
-
-                                const feedback = (FEEDBACK_DB as Record<string, Record<string, string>>)[dim]?.[level] || "분석 데이터가 충분하지 않습니다."
+                                const prescriptions = ROADMAP_PRESCRIPTIONS[dim] || []
+                                const match = prescriptions.find(p => score >= p.min && score <= p.max)
+                                const feedback = match ? match.advice : "분석 데이터가 충분하지 않습니다."
 
                                 return (
                                     <div key={dim} className="group">

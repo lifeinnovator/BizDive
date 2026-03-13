@@ -3,7 +3,7 @@ export const revalidate = 0
 
 import { createClient } from '@/lib/supabase-server'
 import { notFound, redirect } from 'next/navigation'
-import { FEEDBACK_DB, getStageInfo, ITEMIZED_DIMENSION_KR } from '@/data/feedback'
+import { FEEDBACK_DB, getGradeInfo, ITEMIZED_DIMENSION_KR } from '@/data/feedback'
 import { PrintButton, ExpertRequestButton, ReportHeaderActions } from '@/components/report/ReportActions'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -16,6 +16,7 @@ import Link from 'next/link'
 import DiagnosisRadarChart from '@/components/report/RadarChart'
 import { STAGE_UNIT_SCORES, STAGE_MAX_SCORES } from '@/lib/scoring-utils'
 import { generateGrowthRoadmap } from '@/utils/roadmapEngine'
+import { ROADMAP_PRESCRIPTIONS } from '@/data/roadmapData'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 interface ReportPageProps {
@@ -134,7 +135,12 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
 
         const dimensionScores = record.dimension_scores as Record<string, number>
         const totalScore = record.total_score || 0
-        const stageInfo = getStageInfo(totalScore, dimensionScores)
+        const stageInfo = getGradeInfo(
+            totalScore, 
+            dimensionScores, 
+            profile?.stage || 'P', 
+            profile?.industry || 'I'
+        )
 
         const getProgressBarColor = (score: number) => {
             if (score >= 80) return 'bg-emerald-500'
@@ -149,13 +155,13 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
         }
 
         const DIMENSION_KR: Record<string, string> = {
-            D1: '경영전략/리더십',
-            D2: '비즈니스 모델',
-            D4: '조직/인사',
-            D3: '마케팅/영업',
-            D5: '기술/R&D',
-            D6: '재무/자금',
-            D7: '경영/ESG'
+            D1: '시장 기회',
+            D2: '문제 정의',
+            D3: '해결 가치',
+            D4: '실행 역량',
+            D5: '기술/구현',
+            D6: '비즈니스 모델',
+            D7: '성장 전략'
         }
 
         const STAGE_LABELS: Record<string, string> = {
@@ -222,20 +228,6 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
                             <div className="md:flex md:items-start md:justify-between">
                                 <div>
                                     <div className="flex items-center gap-3 mb-2">
-                                        <Badge variant="secondary" className="bg-white/20 text-white hover:bg-white/30 border-none text-xs">
-                                        Stage {(() => {
-                                            if (!record.stage_result) return '-';
-                                            if (record.stage_result.startsWith('{')) {
-                                                try {
-                                                    const parsed = JSON.parse(record.stage_result);
-                                                    return parsed.grade || record.stage_result;
-                                                } catch (e) {
-                                                    return record.stage_result;
-                                                }
-                                            }
-                                            return record.stage_result;
-                                        })()}
-                                        </Badge>
                                         <Badge variant="outline" className="border-white/30 text-white hover:bg-white/10 text-xs">
                                             {profileStageLabel} | {profileIndustryLabel}
                                         </Badge>
@@ -267,7 +259,7 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
                                 <h3 className="text-[14.5px] font-semibold text-indigo-400 mb-2">
                                     현황 진단
                                 </h3>
-                                <p className="leading-relaxed text-[14px]">
+                                <p className="leading-relaxed text-[14px] whitespace-pre-wrap">
                                     {stageInfo.diagnosis}
                                 </p>
                             </div>
@@ -276,7 +268,7 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
                                 <h3 className="text-[14.5px] font-semibold text-emerald-400 mb-2">
                                     전문가 제언
                                 </h3>
-                                <p className="leading-relaxed text-[14px]">
+                                <p className="leading-relaxed text-[14px] whitespace-pre-wrap">
                                     {stageInfo.suggestion}
                                 </p>
                             </div>
@@ -400,11 +392,9 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
                                             const maxScore = STAGE_MAX_SCORES[stage]?.[dim] || 15
                                             const rawScore = (score / 100) * maxScore
 
-                                            let level: 'low' | 'mid' | 'high' = 'mid'
-                                            if (score >= 80) level = 'high'
-                                            else if (score < 40) level = 'low'
-
-                                            const feedback = (FEEDBACK_DB as Record<string, any>)[dim as string]?.[level] || "분석 데이터가 충분하지 않습니다."
+                                            const prescriptions = ROADMAP_PRESCRIPTIONS[dim] || []
+                                            const match = prescriptions.find(p => score >= p.min && score <= p.max)
+                                            const feedback = match ? match.advice : "분석 데이터가 충분하지 않습니다."
 
                                             return (
                                                 <div key={dim} className="space-y-3 group print:break-inside-avoid">
