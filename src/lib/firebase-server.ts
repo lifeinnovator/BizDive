@@ -20,7 +20,7 @@ if (!admin.apps.length) {
           credential: admin.credential.cert(credentials),
         });
       } else {
-        admin.initializeApp();
+        console.warn('Firebase Admin: No credentials found (FIREBASE_SERVICE_ACCOUNT_KEY or local JSON). Skipping initialization.');
       }
     }
   } catch (error) {
@@ -28,5 +28,5 @@ if (!admin.apps.length) {
   }
 }
 
-export const adminAuth = admin.auth();
-export const adminDb = admin.firestore();
+export const adminAuth = admin.apps.length ? admin.auth() : null as any;
+export const adminDb = admin.apps.length ? admin.firestore() : null as any;
