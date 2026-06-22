@@ -15,7 +15,7 @@ if (!admin.apps.length) {
       const path = require('path');
       const resolvedPath = path.resolve(process.cwd(), 'firebase-service-account.json');
       if (fs.existsSync(resolvedPath)) {
-        const credentials = require(resolvedPath);
+        const credentials = JSON.parse(fs.readFileSync(resolvedPath, 'utf8'));
         admin.initializeApp({
           credential: admin.credential.cert(credentials),
         });

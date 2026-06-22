@@ -256,6 +256,15 @@ export const createClient = () => {
         } catch (err: any) {
           return { error: err };
         }
+      },
+      async resetPasswordForEmail(email: string) {
+        try {
+          const { sendPasswordResetEmail } = await import('firebase/auth');
+          await sendPasswordResetEmail(firebaseAuth, email);
+          return { data: {}, error: null };
+        } catch (err: any) {
+          return { data: null, error: err };
+        }
       }
     },
     from(tableName: string) {
