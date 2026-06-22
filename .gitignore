@@ -54,3 +54,6 @@ migrations_list.txt
 supabase_debug.log
 supabase_reset_debug*.log
 reset_error.log
+
+# firebase service account credentials
+firebase-service-account.json
