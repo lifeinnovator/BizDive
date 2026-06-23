@@ -22,33 +22,47 @@ export async function getDiagnosisQuestions(profile: DiagnosisCriteria): Promise
     const safeStage = profile.stage && VALID_STAGES.has(profile.stage) ? profile.stage : null
     const safeIndustry = profile.industry && SAFE_CODE_PATTERN.test(profile.industry) ? profile.industry : null
 
-    // Build filters dynamically to handle potential nulls
-    const filters = [];
+    const queries = [];
 
-    // Always include common questions (if any)
-    filters.push('category.eq.common');
+    // Always include common questions
+    queries.push(
+        supabase.from('questions').select('*').eq('category', 'common')
+    );
 
     if (safeStage) {
-        filters.push(`and(category.eq.stage,mapping_code.eq.${safeStage})`);
-        filters.push(`and(category.eq.esg,mapping_code.eq.${safeStage})`);
+        queries.push(
+            supabase.from('questions').select('*').eq('category', 'stage').eq('mapping_code', safeStage)
+        );
+        queries.push(
+            supabase.from('questions').select('*').eq('category', 'esg').eq('mapping_code', safeStage)
+        );
     }
 
     if (safeStage && safeIndustry) {
         const stageIndustryCode = `${safeStage}_${safeIndustry}`;
-        filters.push(`and(category.eq.industry,mapping_code.eq.${stageIndustryCode})`);
+        queries.push(
+            supabase.from('questions').select('*').eq('category', 'industry').eq('mapping_code', stageIndustryCode)
+        );
     }
 
-    const { data: allQuestions, error } = await supabase
-        .from('questions')
-        .select('*')
-        .or(filters.join(','))
+    const results = await Promise.all(queries);
+    const allQuestions: Question[] = [];
+    const seenIds = new Set<string>();
 
-    if (error) {
-        console.error("Error fetching questions:", error)
-        return []
+    for (const res of results) {
+        if (res.error) {
+            console.error("Error fetching questions subquery:", res.error);
+            continue;
+        }
+        if (res.data) {
+            for (const q of res.data) {
+                if (!seenIds.has(q.id)) {
+                    seenIds.add(q.id);
+                    allQuestions.push(q);
+                }
+            }
+        }
     }
-
-    if (!allQuestions) return []
 
     return allQuestions.sort((a, b) => {
         if (a.dimension < b.dimension) return -1
