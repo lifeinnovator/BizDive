@@ -2,7 +2,7 @@ import * as admin from 'firebase-admin';
 
 if (!admin.apps.length) {
   try {
-    const serviceAccountKeyJson = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+    const serviceAccountKeyJson = process.env.FIREBASE_SERVICE_ACCOUNT_KEY?.trim();
     
     if (serviceAccountKeyJson) {
       const credentials = JSON.parse(serviceAccountKeyJson);
