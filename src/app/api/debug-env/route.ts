@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   const envKeys = Object.keys(process.env);
   const firebaseKeys = envKeys.filter(k => k.includes('FIREBASE'));
