@@ -5,6 +5,8 @@ import {
   addDoc, setDoc, deleteDoc, updateDoc, Timestamp 
 } from 'firebase/firestore';
 
+export type MockQueryData = any[] & { [key: string]: any };
+
 class ClientQueryBuilder {
   private tableName: string;
   private filters: Array<{ field: string; op: any; value: any }> = [];
@@ -21,7 +23,7 @@ class ClientQueryBuilder {
     this.tableName = tableName;
   }
 
-  select(columns?: string) {
+  select(columns?: string, options?: any) {
     return this;
   }
 
@@ -35,7 +37,39 @@ class ClientQueryBuilder {
     return this;
   }
 
-  order(field: string, options?: { ascending: boolean }) {
+  in(field: string, values: any[]) {
+    this.filters.push({ field, op: 'in', value: values });
+    return this;
+  }
+
+  is(field: string, value: any) {
+    this.filters.push({ field, op: '==', value });
+    return this;
+  }
+
+  not(field: string, op: string, value: any) {
+    let mappedOp: any = '!=';
+    if (op === 'is' && value === null) {
+      mappedOp = '!=';
+    }
+    this.filters.push({ field, op: mappedOp, value });
+    return this;
+  }
+
+  filter(field: string, op: string, value: any) {
+    let mappedOp: any = '==';
+    if (op === 'eq') mappedOp = '==';
+    else if (op === 'neq') mappedOp = '!=';
+    else if (op === 'lt') mappedOp = '<';
+    else if (op === 'lte') mappedOp = '<=';
+    else if (op === 'gt') mappedOp = '>';
+    else if (op === 'gte') mappedOp = '>=';
+    
+    this.filters.push({ field, op: mappedOp, value });
+    return this;
+  }
+
+  order(field: string, options?: any) {
     this.orderByField = field;
     this.orderDirection = options?.ascending === false ? 'desc' : 'asc';
     return this;
@@ -71,18 +105,21 @@ class ClientQueryBuilder {
     return this;
   }
 
-  async then(onfulfilled?: (value: any) => any, onrejected?: (reason: any) => any) {
+  async then<TResult = { data: MockQueryData | null; count: number | null; error: any }>(
+    onfulfilled?: (value: { data: MockQueryData | null; count: number | null; error: any }) => TResult | PromiseLike<TResult>,
+    onrejected?: (reason: any) => any
+  ): Promise<TResult> {
     try {
       const res = await this.execute();
-      if (onfulfilled) return onfulfilled(res);
-      return res;
+      if (onfulfilled) return onfulfilled(res as any);
+      return res as any;
     } catch (err) {
       if (onrejected) return onrejected(err);
       throw err;
     }
   }
 
-  private async execute() {
+  private async execute(): Promise<{ data: MockQueryData | null; count: number | null; error: any }> {
     try {
       const colRef = collection(firebaseDb, this.tableName);
 
@@ -95,7 +132,7 @@ class ClientQueryBuilder {
         for (const d of snap.docs) {
           await deleteDoc(d.ref);
         }
-        return { data: null, error: null };
+        return { data: null, count: null, error: null };
       }
 
       if (this.updateData) {
@@ -107,7 +144,7 @@ class ClientQueryBuilder {
         for (const d of snap.docs) {
           await updateDoc(d.ref, this.updateData);
         }
-        return { data: null, error: null };
+        return { data: null, count: null, error: null };
       }
 
       if (this.insertData) {
@@ -115,7 +152,6 @@ class ClientQueryBuilder {
         for (const item of this.insertData) {
           const payload = { ...item };
           
-          // Map created_at if present
           if (payload.created_at) {
             payload.created_at = typeof payload.created_at === 'string' 
               ? Timestamp.fromDate(new Date(payload.created_at)) 
@@ -133,7 +169,13 @@ class ClientQueryBuilder {
             added.push(dataWithId);
           }
         }
-        return { data: Array.isArray(this.insertData) ? added : added[0], error: null };
+        return { data: Array.isArray(this.insertData) ? added : added[0], count: null, error: null };
+      }
+
+      // Check for empty 'in' query to avoid Firestore exception
+      const hasEmptyInFilter = this.filters.some(f => f.op === 'in' && Array.isArray(f.value) && f.value.length === 0);
+      if (hasEmptyInFilter) {
+        return { data: [], count: 0, error: null };
       }
 
       // Select query
@@ -146,7 +188,7 @@ class ClientQueryBuilder {
         qRef = query(qRef, orderBy(this.orderByField, this.orderDirection));
       }
 
-      if (this.limitCount) {
+      if (this.limitCount !== null) {
         qRef = query(qRef, limit(this.limitCount));
       }
 
@@ -165,18 +207,18 @@ class ClientQueryBuilder {
       });
 
       if (this.isSingle) {
-        if (results.length === 0) return { data: null, error: new Error('Document not found') };
-        return { data: results[0], error: null };
+        if (results.length === 0) return { data: null, count: null, error: new Error('Document not found') };
+        return { data: results[0], count: 1, error: null };
       }
 
       if (this.isMaybeSingle) {
-        return { data: results.length > 0 ? results[0] : null, error: null };
+        return { data: results.length > 0 ? results[0] : null, count: results.length > 0 ? 1 : 0, error: null };
       }
 
-      return { data: results, error: null };
+      return { data: results, count: snap.size, error: null };
     } catch (err: any) {
       console.error(`ClientQueryBuilder Error (${this.tableName}):`, err);
-      return { data: null, error: err };
+      return { data: null, count: null, error: err };
     }
   }
 }
@@ -198,12 +240,27 @@ export const createClient = () => {
           error: null
         };
       },
+      async getSession() {
+        const firebaseUser = firebaseAuth.currentUser;
+        if (!firebaseUser) return { data: { session: null }, error: null };
+        return {
+          data: {
+            session: {
+              user: {
+                id: firebaseUser.uid,
+                email: firebaseUser.email,
+                user_metadata: { full_name: firebaseUser.displayName },
+              }
+            }
+          },
+          error: null
+        };
+      },
       async signInWithPassword({ email, password }: any) {
         try {
           const userCredential = await signInWithEmailAndPassword(firebaseAuth, email, password);
           const idToken = await userCredential.user.getIdToken();
           
-          // Set session cookie on Next.js server
           await fetch('/api/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -228,7 +285,6 @@ export const createClient = () => {
           const userCredential = await createUserWithEmailAndPassword(firebaseAuth, email, password);
           const idToken = await userCredential.user.getIdToken();
 
-          // Set session cookie on Next.js server
           await fetch('/api/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -267,7 +323,7 @@ export const createClient = () => {
         }
       }
     },
-    from(tableName: string) {
+    from(tableName: string, ...args: any[]) {
       return new ClientQueryBuilder(tableName);
     }
   };

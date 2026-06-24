@@ -2,6 +2,8 @@ import { adminAuth, adminDb } from './firebase-server';
 import { cookies } from 'next/headers';
 import * as admin from 'firebase-admin';
 
+export type MockQueryData = any[] & { [key: string]: any };
+
 class ServerQueryBuilder {
   private tableName: string;
   private filters: Array<{ field: string; op: string; value: any }> = [];
@@ -18,7 +20,7 @@ class ServerQueryBuilder {
     this.tableName = tableName;
   }
 
-  select(columns?: string) {
+  select(columns?: string, options?: any) {
     return this;
   }
 
@@ -32,7 +34,39 @@ class ServerQueryBuilder {
     return this;
   }
 
-  order(field: string, options?: { ascending: boolean }) {
+  in(field: string, values: any[]) {
+    this.filters.push({ field, op: 'in', value: values });
+    return this;
+  }
+
+  is(field: string, value: any) {
+    this.filters.push({ field, op: '==', value });
+    return this;
+  }
+
+  not(field: string, op: string, value: any) {
+    let mappedOp: any = '!=';
+    if (op === 'is' && value === null) {
+      mappedOp = '!=';
+    }
+    this.filters.push({ field, op: mappedOp, value });
+    return this;
+  }
+
+  filter(field: string, op: string, value: any) {
+    let mappedOp: any = '==';
+    if (op === 'eq') mappedOp = '==';
+    else if (op === 'neq') mappedOp = '!=';
+    else if (op === 'lt') mappedOp = '<';
+    else if (op === 'lte') mappedOp = '<=';
+    else if (op === 'gt') mappedOp = '>';
+    else if (op === 'gte') mappedOp = '>=';
+    
+    this.filters.push({ field, op: mappedOp, value });
+    return this;
+  }
+
+  order(field: string, options?: any) {
     this.orderByField = field;
     this.orderDirection = options?.ascending === false ? 'desc' : 'asc';
     return this;
@@ -68,18 +102,21 @@ class ServerQueryBuilder {
     return this;
   }
 
-  async then(onfulfilled?: (value: any) => any, onrejected?: (reason: any) => any) {
+  async then<TResult = { data: MockQueryData | null; count: number | null; error: any }>(
+    onfulfilled?: (value: { data: MockQueryData | null; count: number | null; error: any }) => TResult | PromiseLike<TResult>,
+    onrejected?: (reason: any) => any
+  ): Promise<TResult> {
     try {
       const res = await this.execute();
-      if (onfulfilled) return onfulfilled(res);
-      return res;
+      if (onfulfilled) return onfulfilled(res as any);
+      return res as any;
     } catch (err) {
       if (onrejected) return onrejected(err);
       throw err;
     }
   }
 
-  private async execute() {
+  private async execute(): Promise<{ data: MockQueryData | null; count: number | null; error: any }> {
     try {
       const colRef = adminDb.collection(this.tableName);
 
@@ -90,9 +127,9 @@ class ServerQueryBuilder {
         }
         const snapshot = await q.get();
         const batch = adminDb.batch();
-        snapshot.docs.forEach(doc => batch.delete(doc.ref));
+        snapshot.docs.forEach((doc: any) => batch.delete(doc.ref));
         await batch.commit();
-        return { data: null, error: null };
+        return { data: null, count: null, error: null };
       }
 
       if (this.updateData) {
@@ -102,9 +139,9 @@ class ServerQueryBuilder {
         }
         const snapshot = await q.get();
         const batch = adminDb.batch();
-        snapshot.docs.forEach(doc => batch.update(doc.ref, this.updateData));
+        snapshot.docs.forEach((doc: any) => batch.update(doc.ref, this.updateData));
         await batch.commit();
-        return { data: null, error: null };
+        return { data: null, count: null, error: null };
       }
 
       if (this.insertData) {
@@ -112,7 +149,6 @@ class ServerQueryBuilder {
         for (const item of this.insertData) {
           const payload = { ...item };
 
-          // Map created_at if present
           if (payload.created_at) {
             payload.created_at = typeof payload.created_at === 'string'
               ? admin.firestore.Timestamp.fromDate(new Date(payload.created_at))
@@ -130,7 +166,13 @@ class ServerQueryBuilder {
             added.push(dataWithId);
           }
         }
-        return { data: Array.isArray(this.insertData) ? added : added[0], error: null };
+        return { data: Array.isArray(this.insertData) ? added : added[0], count: null, error: null };
+      }
+
+      // Check for empty 'in' query to avoid Firestore exception
+      const hasEmptyInFilter = this.filters.some(f => f.op === 'in' && Array.isArray(f.value) && f.value.length === 0);
+      if (hasEmptyInFilter) {
+        return { data: [], count: 0, error: null };
       }
 
       // Select query
@@ -148,7 +190,7 @@ class ServerQueryBuilder {
       }
 
       const snapshot = await q.get();
-      const results = snapshot.docs.map(doc => {
+      const results = snapshot.docs.map((doc: any) => {
         const data = doc.data();
         const formatted: any = { id: doc.id };
         for (const [k, v] of Object.entries(data)) {
@@ -162,18 +204,18 @@ class ServerQueryBuilder {
       });
 
       if (this.isSingle) {
-        if (results.length === 0) return { data: null, error: new Error('Document not found') };
-        return { data: results[0], error: null };
+        if (results.length === 0) return { data: null, count: null, error: new Error('Document not found') };
+        return { data: results[0], count: 1, error: null };
       }
 
       if (this.isMaybeSingle) {
-        return { data: results.length > 0 ? results[0] : null, error: null };
+        return { data: results.length > 0 ? results[0] : null, count: results.length > 0 ? 1 : 0, error: null };
       }
 
-      return { data: results, error: null };
+      return { data: results, count: snapshot.size, error: null };
     } catch (err: any) {
       console.error(`ServerQueryBuilder Error (${this.tableName}):`, err);
-      return { data: null, error: err };
+      return { data: null, count: null, error: err };
     }
   }
 }
@@ -206,11 +248,10 @@ export async function createClient() {
         }
       },
       async signOut() {
-        // Sign out is done on client side, but mock it just in case
         return { error: null };
       }
     },
-    from(tableName: string) {
+    from(tableName: string, ...args: any[]) {
       return new ServerQueryBuilder(tableName);
     }
   };
