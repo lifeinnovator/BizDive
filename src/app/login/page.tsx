@@ -33,15 +33,25 @@ export default function LoginPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [resetSuccess, setResetSuccess] = useState<string | null>(null);
+    const [hideNotice, setHideNotice] = useState(true);
 
-    // Load remembered email
+    // Load remembered email and notice preference
     React.useEffect(() => {
         const savedEmail = localStorage.getItem('bizdive_remembered_email');
         if (savedEmail) {
             setEmail(savedEmail);
             setRememberEmail(true);
         }
+        const savedNotice = localStorage.getItem('bizdive_hide_migration_notice');
+        if (!savedNotice) {
+            setHideNotice(false);
+        }
     }, []);
+
+    const handleCloseNotice = () => {
+        localStorage.setItem('bizdive_hide_migration_notice', 'true');
+        setHideNotice(true);
+    };
 
     const handleGuestStart = async () => {
         if (!username.trim() || !email.trim()) {
@@ -177,15 +187,25 @@ export default function LoginPage() {
                     {mode !== 'reset' ? (
                         <div className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-300">
                             {/* MIGRATION NOTICE POPUP */}
-                            <div className="text-[13px] text-slate-600 bg-amber-50 border border-amber-100 p-3 rounded-lg flex flex-col gap-1.5 shadow-sm">
-                                <div className="font-semibold flex items-center gap-1.5 text-amber-800">
-                                    <AlertCircle className="h-4 w-4" />
-                                    기존 회원 비밀번호 재설정 안내
+                            {!hideNotice && (
+                                <div className="relative text-[13px] text-slate-600 bg-amber-50 border border-amber-100 p-3 pr-8 rounded-lg flex flex-col gap-1.5 shadow-sm">
+                                    <button
+                                        type="button"
+                                        onClick={handleCloseNotice}
+                                        className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 transition-colors p-0.5 text-base leading-none font-bold"
+                                        aria-label="공지 닫기"
+                                    >
+                                        &times;
+                                    </button>
+                                    <div className="font-semibold flex items-center gap-1.5 text-amber-800">
+                                        <AlertCircle className="h-4 w-4" />
+                                        기존 회원 비밀번호 재설정 안내
+                                    </div>
+                                    <p className="leading-relaxed">
+                                        백엔드 전환으로 인해 <strong>기존 회원은 최초 1회 비밀번호 재설정</strong>이 필요합니다. 아래의 <strong>[비밀번호 재설정]</strong> 링크를 클릭하여 가입하신 이메일과 이름(또는 기업명)을 입력하고 비밀번호를 즉시 변경하실 수 있습니다.
+                                    </p>
                                 </div>
-                                <p className="leading-relaxed">
-                                    백엔드 전환으로 인해 <strong>기존 회원은 최초 1회 비밀번호 재설정</strong>이 필요합니다. 아래의 <strong>[비밀번호 재설정]</strong> 링크를 클릭하여 가입하신 이메일과 이름(또는 기업명)을 입력하고 비밀번호를 즉시 변경하실 수 있습니다.
-                                </p>
-                            </div>
+                            )}
 
                             <div className="relative">
                                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
