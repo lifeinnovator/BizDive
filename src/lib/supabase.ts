@@ -208,68 +208,95 @@ class ClientQueryBuilder {
         return { data: Array.isArray(this.upsertData) ? upserted : upserted[0], count: null, error: null };
       }
 
-      // Check for empty 'in' query to avoid Firestore exception
-      const hasEmptyInFilter = this.filters.some(f => f.op === 'in' && Array.isArray(f.value) && f.value.length === 0);
-      if (hasEmptyInFilter) {
-        return { data: [], count: 0, error: null };
-      }
-
-      // Separate filters for Firestore vs In-Memory to avoid missing index errors.
-      // Firestore can execute multiple equality (==) filters using index merging, but
-      // combining them with inequality or sorting strictly requires composite indexes.
-      const firestoreFilters = this.filters.filter(f => f.op === '==');
-      const inMemoryFilters = this.filters.filter(f => f.op !== '==');
+      // Check if we are querying a single document by its document ID field ('id')
+      const idFilter = this.filters.find(f => f.field === 'id' && f.op === '==');
       
-      const hasInMemoryFilters = inMemoryFilters.length > 0;
-      const hasFirestoreFilters = firestoreFilters.length > 0;
-      const useMemorySortLimit = hasInMemoryFilters || hasFirestoreFilters;
+      let results: any[] = [];
+      let totalCount = 0;
 
-      // Select query
-      let qRef = query(colRef);
-      for (const f of firestoreFilters) {
-        qRef = query(qRef, where(f.field, f.op, f.value));
+      if (idFilter) {
+        const docRef = doc(firebaseDb, this.tableName, idFilter.value.toString());
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          const formatted: any = { id: docSnap.id };
+          for (const [k, v] of Object.entries(data)) {
+            if (v && typeof v === 'object' && (v as any).toDate) {
+              formatted[k] = (v as any).toDate().toISOString();
+            } else {
+              formatted[k] = v;
+            }
+          }
+          results.push(formatted);
+          totalCount = 1;
+        }
+      } else {
+        // Check for empty 'in' query to avoid Firestore exception
+        const hasEmptyInFilter = this.filters.some(f => f.op === 'in' && Array.isArray(f.value) && f.value.length === 0);
+        if (hasEmptyInFilter) {
+          return { data: [], count: 0, error: null };
+        }
+
+        // Separate filters for Firestore vs In-Memory to avoid missing index errors.
+        // Firestore can execute multiple equality (==) filters using index merging, but
+        // combining them with inequality or sorting strictly requires composite indexes.
+        const firestoreFilters = this.filters.filter(f => f.op === '==');
+        const inMemoryFilters = this.filters.filter(f => f.op !== '==');
+        
+        const hasInMemoryFilters = inMemoryFilters.length > 0;
+        const hasFirestoreFilters = firestoreFilters.length > 0;
+        const useMemorySortLimit = hasInMemoryFilters || hasFirestoreFilters;
+
+        // Select query
+        let qRef = query(colRef);
+        for (const f of firestoreFilters) {
+          qRef = query(qRef, where(f.field, f.op, f.value));
+        }
+
+        if (this.orderByField && !useMemorySortLimit) {
+          qRef = query(qRef, orderBy(this.orderByField, this.orderDirection));
+        }
+
+        if (this.limitCount !== null && !useMemorySortLimit) {
+          qRef = query(qRef, limit(this.limitCount));
+        }
+
+        const snap = await getDocs(qRef);
+        results = snap.docs.map(d => {
+          const data = d.data();
+          const formatted: any = { id: d.id };
+          for (const [k, v] of Object.entries(data)) {
+            if (v && typeof v === 'object' && (v as any).toDate) {
+              formatted[k] = (v as any).toDate().toISOString();
+            } else {
+              formatted[k] = v;
+            }
+          }
+          return formatted;
+        });
+        totalCount = results.length;
       }
 
-      if (this.orderByField && !useMemorySortLimit) {
-        qRef = query(qRef, orderBy(this.orderByField, this.orderDirection));
-      }
-
-      if (this.limitCount !== null && !useMemorySortLimit) {
-        qRef = query(qRef, limit(this.limitCount));
-      }
-
-      const snap = await getDocs(qRef);
-      let results = snap.docs.map(d => {
-        const data = d.data();
-        const formatted: any = { id: d.id };
-        for (const [k, v] of Object.entries(data)) {
-          if (v && typeof v === 'object' && (v as any).toDate) {
-            formatted[k] = (v as any).toDate().toISOString();
-          } else {
-            formatted[k] = v;
+      // Separate common utility function to convert dates
+      const getComparable = (val: any) => {
+        if (val === null || val === undefined) return val;
+        if (typeof val === 'object') {
+          if (typeof val.toDate === 'function') {
+            return val.toDate().getTime();
+          }
+          if (val instanceof Date) {
+            return val.getTime();
           }
         }
-        return formatted;
-      });
+        if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(val)) {
+          return new Date(val).getTime();
+        }
+        return val;
+      };
 
-      // Apply In-Memory filters
-      if (hasInMemoryFilters && results.length > 0) {
-        const getComparable = (val: any) => {
-          if (val === null || val === undefined) return val;
-          if (typeof val === 'object') {
-            if (typeof val.toDate === 'function') {
-              return val.toDate().getTime();
-            }
-            if (val instanceof Date) {
-              return val.getTime();
-            }
-          }
-          if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(val)) {
-            return new Date(val).getTime();
-          }
-          return val;
-        };
-
+      // Apply In-Memory filters (if any, excluding 'id' filter which is already applied)
+      const inMemoryFilters = this.filters.filter(f => f.op !== '==' || (idFilter && f.field !== 'id'));
+      if (inMemoryFilters.length > 0 && results.length > 0) {
         results = results.filter((doc: any) => {
           for (const f of inMemoryFilters) {
             const docVal = getComparable(doc[f.field]);
@@ -296,23 +323,12 @@ class ClientQueryBuilder {
       }
 
       // Apply In-Memory sorting
-      if (useMemorySortLimit && this.orderByField && results.length > 0) {
-        const getComparable = (val: any) => {
-          if (val === null || val === undefined) return val;
-          if (typeof val === 'object') {
-            if (typeof val.toDate === 'function') {
-              return val.toDate().getTime();
-            }
-            if (val instanceof Date) {
-              return val.getTime();
-            }
-          }
-          if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(val)) {
-            return new Date(val).getTime();
-          }
-          return val;
-        };
+      const hasInMemoryFilters = inMemoryFilters.length > 0;
+      const firestoreFilters = this.filters.filter(f => f.op === '==');
+      const hasFirestoreFilters = firestoreFilters.length > 0;
+      const useMemorySortLimit = hasInMemoryFilters || hasFirestoreFilters || idFilter !== undefined;
 
+      if (useMemorySortLimit && this.orderByField && results.length > 0) {
         results.sort((a, b) => {
           const valA = getComparable(a[this.orderByField!]);
           const valB = getComparable(b[this.orderByField!]);
