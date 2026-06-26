@@ -18,6 +18,7 @@ class ClientQueryBuilder {
   private isDelete: boolean = false;
   private updateData: any = null;
   private insertData: any = null;
+  private upsertData: any = null;
 
   constructor(tableName: string) {
     this.tableName = tableName;
@@ -92,6 +93,11 @@ class ClientQueryBuilder {
 
   insert(data: any | any[]) {
     this.insertData = Array.isArray(data) ? data : [data];
+    return this;
+  }
+
+  upsert(data: any | any[]) {
+    this.upsertData = Array.isArray(data) ? data : [data];
     return this;
   }
 
@@ -172,28 +178,68 @@ class ClientQueryBuilder {
         return { data: Array.isArray(this.insertData) ? added : added[0], count: null, error: null };
       }
 
+      if (this.upsertData) {
+        const upserted = [];
+        for (const item of this.upsertData) {
+          const payload = { ...item };
+          
+          if (payload.created_at) {
+            payload.created_at = typeof payload.created_at === 'string' 
+              ? Timestamp.fromDate(new Date(payload.created_at)) 
+              : payload.created_at;
+          }
+          if (payload.updated_at) {
+            payload.updated_at = typeof payload.updated_at === 'string' 
+              ? Timestamp.fromDate(new Date(payload.updated_at)) 
+              : payload.updated_at;
+          }
+
+          if (payload.id) {
+            const docRef = doc(firebaseDb, this.tableName, payload.id.toString());
+            await setDoc(docRef, payload, { merge: true });
+            upserted.push(payload);
+          } else {
+            const docRef = doc(colRef);
+            const dataWithId = { id: docRef.id, ...payload };
+            await setDoc(docRef, dataWithId, { merge: true });
+            upserted.push(dataWithId);
+          }
+        }
+        return { data: Array.isArray(this.upsertData) ? upserted : upserted[0], count: null, error: null };
+      }
+
       // Check for empty 'in' query to avoid Firestore exception
       const hasEmptyInFilter = this.filters.some(f => f.op === 'in' && Array.isArray(f.value) && f.value.length === 0);
       if (hasEmptyInFilter) {
         return { data: [], count: 0, error: null };
       }
 
+      // Separate filters for Firestore vs In-Memory to avoid missing index errors.
+      // Firestore can execute multiple equality (==) filters using index merging, but
+      // combining them with inequality or sorting strictly requires composite indexes.
+      const firestoreFilters = this.filters.filter(f => f.op === '==');
+      const inMemoryFilters = this.filters.filter(f => f.op !== '==');
+      
+      const hasInMemoryFilters = inMemoryFilters.length > 0;
+      const hasFirestoreFilters = firestoreFilters.length > 0;
+      const useMemorySortLimit = hasInMemoryFilters || hasFirestoreFilters;
+
       // Select query
       let qRef = query(colRef);
-      for (const f of this.filters) {
+      for (const f of firestoreFilters) {
         qRef = query(qRef, where(f.field, f.op, f.value));
       }
 
-      if (this.orderByField) {
+      if (this.orderByField && !useMemorySortLimit) {
         qRef = query(qRef, orderBy(this.orderByField, this.orderDirection));
       }
 
-      if (this.limitCount !== null) {
+      if (this.limitCount !== null && !useMemorySortLimit) {
         qRef = query(qRef, limit(this.limitCount));
       }
 
       const snap = await getDocs(qRef);
-      const results = snap.docs.map(d => {
+      let results = snap.docs.map(d => {
         const data = d.data();
         const formatted: any = { id: d.id };
         for (const [k, v] of Object.entries(data)) {
@@ -206,6 +252,85 @@ class ClientQueryBuilder {
         return formatted;
       });
 
+      // Apply In-Memory filters
+      if (hasInMemoryFilters && results.length > 0) {
+        const getComparable = (val: any) => {
+          if (val === null || val === undefined) return val;
+          if (typeof val === 'object') {
+            if (typeof val.toDate === 'function') {
+              return val.toDate().getTime();
+            }
+            if (val instanceof Date) {
+              return val.getTime();
+            }
+          }
+          if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(val)) {
+            return new Date(val).getTime();
+          }
+          return val;
+        };
+
+        results = results.filter((doc: any) => {
+          for (const f of inMemoryFilters) {
+            const docVal = getComparable(doc[f.field]);
+            const filterVal = getComparable(f.value);
+
+            if (f.op === '<') {
+              if (!(docVal < filterVal)) return false;
+            } else if (f.op === '<=') {
+              if (!(docVal <= filterVal)) return false;
+            } else if (f.op === '>') {
+              if (!(docVal > filterVal)) return false;
+            } else if (f.op === '>=') {
+              if (!(docVal >= filterVal)) return false;
+            } else if (f.op === '!=') {
+              if (docVal === filterVal) return false;
+            } else if (f.op === 'in') {
+              if (!Array.isArray(f.value)) return false;
+              const mappedArray = f.value.map(getComparable);
+              if (!mappedArray.includes(docVal)) return false;
+            }
+          }
+          return true;
+        });
+      }
+
+      // Apply In-Memory sorting
+      if (useMemorySortLimit && this.orderByField && results.length > 0) {
+        const getComparable = (val: any) => {
+          if (val === null || val === undefined) return val;
+          if (typeof val === 'object') {
+            if (typeof val.toDate === 'function') {
+              return val.toDate().getTime();
+            }
+            if (val instanceof Date) {
+              return val.getTime();
+            }
+          }
+          if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(val)) {
+            return new Date(val).getTime();
+          }
+          return val;
+        };
+
+        results.sort((a, b) => {
+          const valA = getComparable(a[this.orderByField!]);
+          const valB = getComparable(b[this.orderByField!]);
+          
+          if (valA === undefined || valA === null) return 1;
+          if (valB === undefined || valB === null) return -1;
+          
+          if (valA < valB) return this.orderDirection === 'asc' ? -1 : 1;
+          if (valA > valB) return this.orderDirection === 'asc' ? 1 : -1;
+          return 0;
+        });
+      }
+
+      // Apply In-Memory limiting
+      if (useMemorySortLimit && this.limitCount !== null) {
+        results = results.slice(0, this.limitCount);
+      }
+
       if (this.isSingle) {
         if (results.length === 0) return { data: null, count: null, error: new Error('Document not found') };
         return { data: results[0], count: 1, error: null };
@@ -215,7 +340,7 @@ class ClientQueryBuilder {
         return { data: results.length > 0 ? results[0] : null, count: results.length > 0 ? 1 : 0, error: null };
       }
 
-      return { data: results, count: snap.size, error: null };
+      return { data: results, count: results.length, error: null };
     } catch (err: any) {
       console.error(`ClientQueryBuilder Error (${this.tableName}):`, err);
       return { data: null, count: null, error: err };
