@@ -32,6 +32,7 @@ let expertRecordId = null
 let engagementId = null
 let serviceProjectId = null
 let mentoringSessionId = null
+const temporaryProjectId = `test_project_${runId}`
 
 async function accessToken() {
   const token = await getApps()[0].options.credential.getAccessToken()
@@ -73,12 +74,15 @@ async function deleteAuditLogs() {
 try {
   const projects = await db.collection('projects').where('group_id', '!=', null).limit(1).get()
   if (projects.empty) throw new Error('An institution project is required for this test.')
-  const project = projects.docs[0]
-  serviceProjectId = project.id
-  const groupId = project.data().group_id
+  const sourceProject = projects.docs[0]
+  serviceProjectId = temporaryProjectId
+  const groupId = sourceProject.data().group_id
+  const project = { id: temporaryProjectId, data: () => ({ group_id: groupId }) }
   const now = FieldValue.serverTimestamp()
 
   await Promise.all([
+    db.collection('projects').doc(project.id).set({ id: project.id, group_id: groupId, name: `Temporary Product Test ${runId}`, status: 'active', created_at: now, updated_at: now }),
+    db.collection('project_product_configs').doc(project.id).set({ id: project.id, project_id: project.id, package_code: 'program_operations', billing_status: 'active', migration_id: `integration_${runId}`, created_at: now, updated_at: now }),
     auth.createUser({ uid, email: `${uid}@example.invalid`, displayName: 'Campaign Diagnosis Test' }),
     auth.createUser({ uid: expertUid, email: `${expertUid}@example.invalid`, displayName: 'Campaign Expert Test' }),
   ])
@@ -111,6 +115,12 @@ try {
   const login = await request('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ idToken }) })
   const cookie = login.response.headers.get('set-cookie')?.split(';')[0]
   if (!cookie) throw new Error('The session cookie was not issued.')
+  await db.collection('project_product_configs').doc(project.id).update({ billing_status: 'suspended', updated_at: FieldValue.serverTimestamp() })
+  await request('/api/diagnosis/submit', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Cookie: cookie },
+    body: JSON.stringify({ assignmentId, responses: { [`test_q1_${runId}`]: true, [`test_q2_${runId}`]: false } }),
+  }, 403)
+  await db.collection('project_product_configs').doc(project.id).update({ billing_status: 'active', updated_at: FieldValue.serverTimestamp() })
   const page = await request(`/diagnosis?projectId=${project.id}&round=97`, { headers: { Cookie: cookie } })
   if (!page.result.text?.includes(`Temporary Campaign ${runId}`) || !page.result.text.includes(`Temporary market question ${runId}`)) throw new Error('The campaign snapshot was not rendered.')
 
@@ -143,6 +153,9 @@ try {
   if (expertSubmission.result.totalScore !== 25 || expertRecord.data()?.assessment_type !== 'expert' || expertRecord.data()?.respondent_user_id !== expertUid) throw new Error('Expert diagnosis persistence failed.')
 
   await request(`/api/mentoring/recommendations?projectId=${encodeURIComponent(project.id)}`, { headers: { Cookie: expertCookie } }, 403)
+  await db.collection('project_product_configs').doc(project.id).update({ package_code: 'diagnosis', updated_at: FieldValue.serverTimestamp() })
+  await request(`/api/mentoring/recommendations?projectId=${encodeURIComponent(project.id)}`, { headers: { Cookie: cookie } }, 403)
+  await db.collection('project_product_configs').doc(project.id).update({ package_code: 'program_operations', updated_at: FieldValue.serverTimestamp() })
   const recommendations = await request(`/api/mentoring/recommendations?projectId=${encodeURIComponent(project.id)}`, { headers: { Cookie: cookie } })
   if (recommendations.result.needs[0]?.code !== 'market_customer' || recommendations.result.mentors[0]?.id !== expertUid) throw new Error('Diagnosis-linked mentor recommendation failed.')
   const mentoringRequest = await request('/api/mentoring/recommendations', {
@@ -171,11 +184,13 @@ try {
   const visibleLog = visibleWorkspace.result.sessions.find((session) => session.id === mentoringSessionId)?.log
   if (visibleLog?.mentee_content !== 'Participant note' || visibleLog?.institution_content !== undefined) throw new Error('Role-separated mentoring log response failed.')
 
-  console.log(JSON.stringify({ passed: true, checks: ['campaign snapshot rendering', 'authenticated company membership', 'stable response IDs', 'server-side weighted scoring', 'atomic assignment submission', 'unknown response removal', 'duplicate submission rejection', 'unassigned expert rejection', 'expert assignment rendering', 'expert diagnosis submission', 'non-participant recommendation rejection', 'diagnosis-linked mentor recommendation', 'mentoring request persistence', 'duplicate mentoring request rejection', 'non-mentor log rejection', 'mentor workspace authorization', 'hidden mentee log redaction', 'role-separated mentoring log response'] }, null, 2))
+  console.log(JSON.stringify({ passed: true, checks: ['isolated temporary project', 'suspended write rejection', 'campaign snapshot rendering', 'authenticated company membership', 'stable response IDs', 'server-side weighted scoring', 'atomic assignment submission', 'unknown response removal', 'duplicate submission rejection', 'unassigned expert rejection', 'expert assignment rendering', 'expert diagnosis submission', 'non-participant recommendation rejection', 'package feature rejection', 'diagnosis-linked mentor recommendation', 'mentoring request persistence', 'duplicate mentoring request rejection', 'non-mentor log rejection', 'mentor workspace authorization', 'hidden mentee log redaction', 'role-separated mentoring log response'] }, null, 2))
 } finally {
   await Promise.allSettled([
     auth.deleteUser(uid),
     auth.deleteUser(expertUid),
+    db.collection('projects').doc(temporaryProjectId).delete(),
+    db.collection('project_product_configs').doc(temporaryProjectId).delete(),
     db.collection('profiles').doc(uid).delete(),
     db.collection('profiles').doc(expertUid).delete(),
     db.collection('mentor_profiles').doc(expertUid).delete(),

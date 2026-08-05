@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase-server'
 import { adminDb } from '@/lib/firebase-server'
 import { scoreCampaignDiagnosis } from '@/lib/campaign-diagnosis'
 import { getGrade } from '@/lib/scoring-utils'
+import { assertProjectFeature, ProductAccessError } from '@/lib/product-package'
 
 type SubmitBody = { assignmentId?: unknown; responses?: unknown }
 
@@ -32,6 +33,7 @@ export async function POST(request: Request) {
     } else {
       return NextResponse.json({ error: '지원하지 않는 진단 유형입니다.' }, { status: 409 })
     }
+    await assertProjectFeature(assignment.project_id, assignment.assessment_type === 'expert' ? 'expert_diagnosis' : 'diagnosis', { write: true })
 
     const campaignRef = adminDb.collection('diagnosis_campaigns').doc(assignment.campaign_id) as FirebaseFirestore.DocumentReference
     const versionRef = adminDb.collection('diagnosis_template_versions').doc(assignment.template_version_id) as FirebaseFirestore.DocumentReference
@@ -100,6 +102,7 @@ export async function POST(request: Request) {
     })
     return NextResponse.json({ recordId: recordRef.id, ...submittedScore })
   } catch (error) {
+    if (error instanceof ProductAccessError) return NextResponse.json({ error: error.message }, { status: error.status })
     if (error instanceof Error && error.message === 'ASSIGNMENT_ALREADY_SUBMITTED') {
       return NextResponse.json({ error: '이미 제출된 진단입니다.' }, { status: 409 })
     }

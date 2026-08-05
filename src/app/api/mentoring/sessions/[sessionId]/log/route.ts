@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { FieldValue } from 'firebase-admin/firestore'
 import { createClient } from '@/lib/supabase-server'
 import { adminDb } from '@/lib/firebase-server'
+import { assertProjectFeature, ProductAccessError } from '@/lib/product-package'
 
 type RouteContext = { params: Promise<{ sessionId: string }> }
 
@@ -18,6 +19,9 @@ export async function PUT(request: Request, context: RouteContext) {
     if ((!menteeContent && !institutionContent) || typeof body.menteeVisible !== 'boolean') return NextResponse.json({ error: '기업용 또는 기관용 기록과 기업 공개 여부를 입력해주세요.' }, { status: 400 })
     const sessionRef = adminDb.collection('mentoring_sessions').doc(sessionId) as FirebaseFirestore.DocumentReference
     const logRef = adminDb.collection('mentoring_logs').doc(sessionId) as FirebaseFirestore.DocumentReference
+    const sessionSnapshot = await sessionRef.get()
+    if (!sessionSnapshot.exists || sessionSnapshot.data()?.mentor_user_id !== user.id) throw new Error('SESSION_FORBIDDEN')
+    await assertProjectFeature(sessionSnapshot.data()?.project_id, 'mentoring', { write: true })
     await adminDb.runTransaction(async (transaction: FirebaseFirestore.Transaction) => {
       const [session, existing] = await Promise.all([transaction.get(sessionRef), transaction.get(logRef)])
       if (!session.exists || session.data()?.mentor_user_id !== user.id) throw new Error('SESSION_FORBIDDEN')
@@ -28,6 +32,7 @@ export async function PUT(request: Request, context: RouteContext) {
     })
     return NextResponse.json({ log: { id: sessionId, mentee_visible: body.menteeVisible }, session: { id: sessionId, status: 'completed' } })
   } catch (error) {
+    if (error instanceof ProductAccessError) return NextResponse.json({ error: error.message }, { status: error.status })
     if (error instanceof Error && error.message === 'SESSION_FORBIDDEN') return NextResponse.json({ error: '배정된 멘토만 일지를 작성할 수 있습니다.' }, { status: 403 })
     if (error instanceof Error && error.message === 'SESSION_NOT_WRITABLE') return NextResponse.json({ error: '일지를 작성할 수 없는 일정 상태입니다.' }, { status: 409 })
     console.error('Mentoring log failed:', error)

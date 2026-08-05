@@ -3,6 +3,7 @@ import { FieldValue } from 'firebase-admin/firestore'
 import { createClient } from '@/lib/supabase-server'
 import { adminDb } from '@/lib/firebase-server'
 import { deriveMentoringNeeds, DIMENSION_MENTORING_FIELDS } from '@/lib/mentoring-domain'
+import { assertProjectFeature, ProductAccessError } from '@/lib/product-package'
 
 async function participantContext(userId: string, projectId: string) {
   if (!adminDb) return null
@@ -30,6 +31,7 @@ export async function GET(request: Request) {
     const projectId = new URL(request.url).searchParams.get('projectId')?.trim() || ''
     const context = projectId ? await participantContext(user.id, projectId) : null
     if (!context) return NextResponse.json({ error: '이 사업의 참여기업 회원만 멘토를 선택할 수 있습니다.' }, { status: 403 })
+    await assertProjectFeature(projectId, 'mentoring')
     const [recordSnapshot, mentorSnapshot, engagementSnapshot] = await Promise.all([
       adminDb.collection('diagnosis_records').where('project_id', '==', projectId).get(),
       adminDb.collection('mentor_profiles').get(),
@@ -44,6 +46,7 @@ export async function GET(request: Request) {
       .map((mentor: Record<string, unknown>) => ({ id: mentor.id, display_name: mentor.display_name, headline: mentor.headline || null, specialty_codes: mentor.specialty_codes, requested: activeEngagements.some((engagement: Record<string, unknown>) => engagement.mentor_user_id === mentor.id) }))
     return NextResponse.json({ projectId, companyId: context.companyId, participationId: context.participationId, needs, mentors, activeEngagements })
   } catch (error) {
+    if (error instanceof ProductAccessError) return NextResponse.json({ error: error.message }, { status: error.status })
     console.error('Mentor recommendation failed:', error)
     return NextResponse.json({ error: '멘토 추천을 불러오지 못했습니다.' }, { status: 500 })
   }
@@ -59,6 +62,7 @@ export async function POST(request: Request) {
     const mentorId = typeof body.mentorId === 'string' ? body.mentorId.trim() : ''
     const context = projectId ? await participantContext(user.id, projectId) : null
     if (!context) return NextResponse.json({ error: '이 사업의 참여기업 회원만 요청할 수 있습니다.' }, { status: 403 })
+    await assertProjectFeature(projectId, 'mentoring', { write: true })
     const requestedCodes = Array.isArray(body.requestedCodes) ? [...new Set(body.requestedCodes.filter((value): value is string => typeof value === 'string' && Object.values(DIMENSION_MENTORING_FIELDS).some((field) => field.code === value)))] : []
     if (!mentorId || !requestedCodes.length) return NextResponse.json({ error: '멘토와 멘토링 분야를 선택해주세요.' }, { status: 400 })
     const diagnosisSnapshot = await adminDb.collection('diagnosis_records').where('project_id', '==', projectId).get()
@@ -79,6 +83,7 @@ export async function POST(request: Request) {
     })
     return NextResponse.json({ engagement: { id: engagementRef.id, status: 'requested' } }, { status: 201 })
   } catch (error) {
+    if (error instanceof ProductAccessError) return NextResponse.json({ error: error.message }, { status: error.status })
     if (error instanceof Error && error.message === 'ENGAGEMENT_ALREADY_ACTIVE') return NextResponse.json({ error: '이미 진행 중인 멘토 요청이 있습니다.' }, { status: 409 })
     if (error instanceof Error && error.message === 'MENTOR_NOT_AVAILABLE') return NextResponse.json({ error: '선택할 수 없는 멘토입니다.' }, { status: 400 })
     console.error('Mentoring request failed:', error)
