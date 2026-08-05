@@ -7,7 +7,7 @@ import { FEEDBACK_DB, getGradeInfo, ITEMIZED_DIMENSION_KR } from '@/data/feedbac
 import { PrintButton, ExpertRequestButton, ReportHeaderActions } from '@/components/report/ReportActions'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import GrowthAnalysis from '@/components/report/GrowthAnalysis'
+import GrowthAnalysis, { type DiagnosisRecord } from '@/components/report/GrowthAnalysis'
 import { History, ArrowLeft, CheckCircle2, TrendingUp, HelpCircle, MessageSquare, Target, Layers, Info, Trophy, Wrench } from 'lucide-react'
 import { getDiagnosisQuestions } from '@/lib/diagnosis-logic'
 import ConsultantBanner from '@/components/report/ConsultantBanner'
@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import DiagnosisRadarChart from '@/components/report/RadarChart'
 import { STAGE_UNIT_SCORES, STAGE_MAX_SCORES, type Stage, type Dimension } from '@/lib/scoring-utils'
-import { generateGrowthRoadmap } from '@/utils/roadmapEngine'
+import { generateGrowthRoadmap, type DiagnosisScores } from '@/utils/roadmapEngine'
 import { ROADMAP_PRESCRIPTIONS } from '@/data/roadmapData'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
@@ -344,7 +344,7 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
                                                 const industry = profile?.industry || 'IT/SW/SaaS';
                                                 const stage = profile?.stage || '예비창업';
                                                 const roadmapData = generateGrowthRoadmap(
-                                                    dimensionScores as any,
+                                                    dimensionScores as unknown as DiagnosisScores,
                                                     totalScore,
                                                     industry,
                                                     stage
@@ -435,8 +435,8 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
                             {previousRecord && (
                                 <div className="mt-8">
                                     <GrowthAnalysis
-                                        current={record}
-                                        previous={previousRecord}
+                                        current={record as unknown as DiagnosisRecord}
+                                        previous={previousRecord as unknown as DiagnosisRecord}
                                         maxScores={maxScores}
                                     />
                                 </div>
@@ -459,7 +459,7 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
                                 <CardContent className="p-0">
                                     {memosRes.data && memosRes.data.length > 0 ? (
                                         <div className="divide-y divide-gray-100">
-                                            {memosRes.data.map((memo: any) => (
+                                            {memosRes.data.map((memo: { id: string; content?: string; created_at?: string; profiles?: { user_name?: string; user_title?: string } }) => (
                                                 <div key={memo.id} className="p-6 hover:bg-slate-50/50 transition-colors">
                                                     <div className="flex justify-between items-start mb-4">
                                                         <div className="flex items-center gap-3">
@@ -472,11 +472,11 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
                                                             </div>
                                                         </div>
                                                         <span className="text-[12px] text-slate-400 font-medium">
-                                                            {new Date(memo.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                                            {memo.created_at ? new Date(memo.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' }) : '-'}
                                                         </span>
                                                     </div>
                                                     <div className="bg-white border border-slate-200 rounded-xl p-5 text-[14px] text-slate-700 leading-relaxed shadow-sm">
-                                                        {memo.content.split('\n').map((line: string, i: number) => (
+                                                        {(memo.content || '').split('\n').map((line: string, i: number) => (
                                                             <p key={i} className={i > 0 ? 'mt-2' : ''}>{line}</p>
                                                         ))}
                                                     </div>
@@ -501,12 +501,13 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
                 </main>
             </div>
         )
-    } catch (err: any) {
+    } catch (err: unknown) {
+        const renderError = err instanceof Error ? err : new Error('Unknown report rendering error')
         return (
             <div style={{ padding: '40px', fontFamily: 'monospace', fontSize: '12px', background: '#fff0f0' }}>
                 <h1 style={{ color: 'red' }}>RENDER ERROR CAUGHT</h1>
-                <pre>{err?.message}</pre>
-                <pre>{err?.stack}</pre>
+                <pre>{renderError.message}</pre>
+                <pre>{renderError.stack}</pre>
             </div>
         )
     }

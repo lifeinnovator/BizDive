@@ -23,11 +23,6 @@ export default function LoginPage() {
     const [username, setUsername] = useState('');
     const [rememberEmail, setRememberEmail] = useState(false);
 
-    // Reset password states
-    const [resetName, setResetName] = useState('');
-    const [newPassword, setNewPassword] = useState('');
-    const [showNewPassword, setShowNewPassword] = useState(false);
-
     // UI States
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -71,14 +66,8 @@ export default function LoginPage() {
     };
 
     const handlePasswordReset = async () => {
-        if (!email.trim() || !resetName.trim() || !newPassword.trim()) {
-            setError('이메일, 이름(또는 기업명), 새로운 비밀번호를 모두 입력해주세요.');
-            setResetSuccess(null);
-            return;
-        }
-
-        if (newPassword.trim().length < 6) {
-            setError('비밀번호는 최소 6자리 이상이어야 합니다.');
+        if (!email.trim()) {
+            setError('가입 이메일을 입력해주세요.');
             setResetSuccess(null);
             return;
         }
@@ -91,11 +80,7 @@ export default function LoginPage() {
             const response = await fetch('/api/auth/reset-password', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: email.trim(),
-                    userName: resetName.trim(),
-                    newPassword: newPassword.trim(),
-                }),
+                body: JSON.stringify({ email: email.trim() }),
             });
 
             const result = await response.json();
@@ -103,14 +88,10 @@ export default function LoginPage() {
             if (!response.ok) {
                 setError(result.error || '비밀번호 재설정에 실패했습니다.');
             } else {
-                setResetSuccess('비밀번호가 성공적으로 재설정되었습니다. 새 비밀번호로 로그인해주세요.');
-                setPassword(newPassword); // Pre-fill password field
-                setMode('login'); // Switch back to login mode
+                setResetSuccess('가입된 계정이라면 비밀번호 재설정 이메일이 발송됩니다.');
                 setError(null);
-                setNewPassword('');
-                setResetName('');
             }
-        } catch (err) {
+        } catch {
             setError('비밀번호 재설정 중 오류가 발생했습니다.');
         } finally {
             setLoading(false);
@@ -307,37 +288,9 @@ export default function LoginPage() {
                                 />
                             </div>
 
-                            <div className="relative">
-                                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    type="text"
-                                    placeholder="가입자 이름 또는 기업명"
-                                    value={resetName}
-                                    onChange={(e) => setResetName(e.target.value)}
-                                    className="pl-10 h-11"
-                                    disabled={loading}
-                                />
-                            </div>
-
-                            <div className="relative">
-                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    type={showNewPassword ? 'text' : 'password'}
-                                    placeholder="새로운 비밀번호 (6자리 이상)"
-                                    value={newPassword}
-                                    onChange={(e) => setNewPassword(e.target.value)}
-                                    className="pl-10 pr-10 h-11"
-                                    onKeyDown={(e) => e.key === 'Enter' && handlePasswordReset()}
-                                    disabled={loading}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowNewPassword(!showNewPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
-                                >
-                                    {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                </button>
-                            </div>
+                            <p className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs leading-relaxed text-slate-500">
+                                계정 존재 여부와 관계없이 같은 안내가 표시됩니다. 이메일의 Firebase 인증 링크에서 새 비밀번호를 설정해 주세요.
+                            </p>
 
                             {error && (
                                 <div className="flex items-center gap-2 text-destructive text-sm bg-destructive/10 p-3 rounded-lg">
@@ -362,9 +315,9 @@ export default function LoginPage() {
                                     {loading ? (
                                         <>
                                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                            변경 처리 중...
+                                            이메일 발송 중...
                                         </>
-                                    ) : '비밀번호 재설정 및 변경'}
+                                    ) : '비밀번호 재설정 이메일 발송'}
                                 </Button>
                                 <Button
                                     variant="ghost"

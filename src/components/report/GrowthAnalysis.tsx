@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge'
 
 import { ITEMIZED_DIMENSION_KR } from '@/data/feedback'
 
-interface DiagnosisRecord {
+export interface DiagnosisRecord {
     total_score: number
     dimension_scores: Record<string, number>
     created_at: string
