@@ -5,22 +5,9 @@ import { NextResponse } from 'next/server'
 // Access: GET /api/debug-auth?recordId=xxx
 // ⚠️  PROTECTED: super_admin / service_operator only
 export async function GET(request: Request) {
-    // Only allow in development OR for super admins in production
+    // Diagnostic details must never be exposed by a production deployment.
     if (process.env.NODE_ENV === 'production') {
-        const supabaseCheck = await createClient()
-        const { data: { user: checkUser } } = await supabaseCheck.auth.getUser()
-        if (!checkUser) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-        }
-        const { data: checkProfile } = await supabaseCheck
-            .from('profiles')
-            .select('role')
-            .eq('id', checkUser.id)
-            .single()
-        const allowedRoles = ['super_admin', 'service_operator']
-        if (!allowedRoles.includes(checkProfile?.role)) {
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-        }
+        return NextResponse.json({ error: 'Not found' }, { status: 404 })
     }
 
     const { searchParams } = new URL(request.url)

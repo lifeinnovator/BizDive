@@ -43,29 +43,27 @@ const NavigationBar = () => {
                 <div className="flex items-center gap-3 sm:gap-6">
                     {isLoggedIn ? (
                         <>
-                            <Link href="/dashboard" className="text-[13px] sm:text-[15px] font-bold text-slate-500 hover:text-indigo-900 transition-colors">
+                            <Link href="/dashboard" className="inline-flex min-h-11 items-center text-[13px] sm:text-[15px] font-bold text-slate-500 hover:text-indigo-900 transition-colors">
                                 나의 대시보드
                             </Link>
                             {userRole === 'super_admin' && (
-                                <a href="https://admin.bizdive.kr/ops" className="text-[13px] sm:text-[15px] font-bold text-indigo-600 hover:text-indigo-900 transition-colors">
+                                <a href="https://admin.bizdive.kr/ops" className="inline-flex min-h-11 items-center text-[13px] sm:text-[15px] font-bold text-indigo-600 hover:text-indigo-900 transition-colors">
                                     운영 관리
                                 </a>
                             )}
                             {userRole === 'group_admin' && (
-                                <a href="https://bizdive.kr/admin/demo" className="text-[13px] sm:text-[15px] font-bold text-indigo-600 hover:text-indigo-900 transition-colors">
+                                <a href="https://bizdive.kr/admin/demo" className="inline-flex min-h-11 items-center text-[13px] sm:text-[15px] font-bold text-indigo-600 hover:text-indigo-900 transition-colors">
                                     지원기관 관리
                                 </a>
                             )}
                         </>
                     ) : (
                         <>
-                            <Link href="/login" className="text-[13px] sm:text-[15px] font-bold text-slate-500 hover:text-indigo-900 transition-colors">
+                            <Link href="/login" className="inline-flex min-h-11 items-center text-[13px] sm:text-[15px] font-bold text-slate-500 hover:text-indigo-900 transition-colors">
                                 로그인
                             </Link>
-                            <Link href="/onboarding">
-                                <button className="bg-indigo-900 text-white px-4 py-2 rounded-full font-bold text-[13px] sm:text-[15px] hover:bg-slate-900 transition-all shadow-md">
-                                    무료 진단 시작
-                                </button>
+                            <Link href="/onboarding" className="inline-flex min-h-11 items-center rounded-full bg-indigo-900 px-4 font-bold text-white text-[13px] shadow-md transition-all hover:bg-slate-900 sm:text-[15px]">
+                                무료 진단 시작
                             </Link>
                         </>
                     )}

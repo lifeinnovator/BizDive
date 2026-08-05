@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Database } from '@/types/database'
@@ -42,6 +42,7 @@ export default function DiagnosisForm({
     const router = useRouter()
     const [answers, setAnswers] = useState<Record<string, boolean>>({})
     const [currentStep, setCurrentStep] = useState(0)
+    const [draftReady, setDraftReady] = useState(false)
 
     const searchParams = useSearchParams()
 
@@ -63,6 +64,36 @@ export default function DiagnosisForm({
             questions: groups[key] || []
         })).filter(s => s.questions.length > 0)
     }, [questions])
+
+    const draftKey = useMemo(
+        () => `bizdive_diagnosis_draft:${userId || profile.email || 'guest'}:${projectId || 'individual'}:${round}`,
+        [profile.email, projectId, round, userId]
+    )
+
+    useEffect(() => {
+        try {
+            const savedDraft = sessionStorage.getItem(draftKey)
+            if (savedDraft) {
+                const parsed = JSON.parse(savedDraft) as { answers?: Record<string, unknown>; currentStep?: number }
+                const restoredAnswers = Object.fromEntries(
+                    Object.entries(parsed.answers || {}).filter((entry): entry is [string, boolean] => typeof entry[1] === 'boolean')
+                )
+                setAnswers(restoredAnswers)
+                if (Number.isInteger(parsed.currentStep) && sections.length > 0) {
+                    setCurrentStep(Math.min(Math.max(parsed.currentStep || 0, 0), sections.length - 1))
+                }
+            }
+        } catch {
+            sessionStorage.removeItem(draftKey)
+        } finally {
+            setDraftReady(true)
+        }
+    }, [draftKey, sections.length])
+
+    useEffect(() => {
+        if (!draftReady) return
+        sessionStorage.setItem(draftKey, JSON.stringify({ answers, currentStep }))
+    }, [answers, currentStep, draftKey, draftReady])
 
     // Calculate scores
     const { totalScore, sectionScores, sectionEarnedScores, sectionMaxScores } = useMemo(() => {
@@ -176,6 +207,7 @@ export default function DiagnosisForm({
             recordId: newRecordId 
         }
         sessionStorage.setItem('bizdive_report_preview', JSON.stringify(previewData))
+        sessionStorage.removeItem(draftKey)
         router.push('/report/preview')
     }
 
@@ -211,11 +243,12 @@ export default function DiagnosisForm({
                             variant="ghost"
                             size="icon"
                             onClick={() => {
-                                if (confirm('진단을 중단하고 메인으로 돌아가시겠습니까? 입력 중인 내용은 저장되지 않습니다.')) {
+                                if (confirm('진단을 중단하고 메인으로 돌아가시겠습니까? 진행 내용은 현재 브라우저 탭에 임시 저장됩니다.')) {
                                     router.push('/')
                                 }
                             }}
                             className="rounded-xl hover:bg-slate-100"
+                            aria-label="진단을 중단하고 메인으로 돌아가기"
                         >
                             <X className="h-5 w-5 text-slate-400" />
                         </Button>
@@ -226,6 +259,9 @@ export default function DiagnosisForm({
             {/* Progress Indicator */}
             <div className="bg-white border-b border-slate-100">
                 <div className="max-w-3xl mx-auto px-4 py-4">
+                    <p className="mb-3 text-center text-[11px] font-medium text-slate-400" aria-live="polite">
+                        진행 내용이 현재 브라우저에 자동 저장됩니다.
+                    </p>
                     <div className="flex items-center justify-between gap-2">
                         {sections.map((sec, idx) => (
                             <div key={sec.id} className="flex-1 flex flex-col items-center gap-2">

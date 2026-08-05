@@ -158,7 +158,7 @@ export default function LoginPage() {
                         </CardTitle>
                         <CardDescription className="mt-1 text-sm text-muted-foreground">
                             {mode === 'reset' 
-                                ? '회원정보 확인 후 비밀번호를 즉시 변경합니다.' 
+                                ? '가입 이메일로 안전한 재설정 링크를 보내드립니다.'
                                 : '7차원 입체적 기업 분석을 시작합니다.'}
                         </CardDescription>
                     </div>
@@ -183,7 +183,7 @@ export default function LoginPage() {
                                         기존 회원 비밀번호 재설정 안내
                                     </div>
                                     <p className="leading-relaxed">
-                                        백엔드 전환으로 인해 <strong>기존 회원은 최초 1회 비밀번호 재설정</strong>이 필요합니다. 아래의 <strong>[비밀번호 재설정]</strong> 링크를 클릭하여 가입하신 이메일과 이름(또는 기업명)을 입력하고 비밀번호를 즉시 변경하실 수 있습니다.
+                                        백엔드 전환으로 인해 <strong>기존 회원은 최초 1회 비밀번호 재설정</strong>이 필요합니다. 아래의 <strong>[비밀번호 재설정]</strong>을 선택하면 가입 이메일로 안전한 재설정 링크를 보내드립니다.
                                     </p>
                                 </div>
                             )}
@@ -214,8 +214,9 @@ export default function LoginPage() {
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
-                                    tabIndex={-1}
+                                    className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
+                                    aria-label={showPassword ? '비밀번호 숨기기' : '비밀번호 보기'}
+                                    aria-pressed={showPassword}
                                 >
                                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </button>
@@ -240,7 +241,7 @@ export default function LoginPage() {
                                 <button
                                     type="button"
                                     onClick={() => { setMode('reset'); setError(null); setResetSuccess(null); }}
-                                    className="text-sm font-medium text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer select-none"
+                                    className="min-h-11 px-2 text-sm font-medium text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer select-none"
                                     disabled={loading}
                                 >
                                     비밀번호 재설정
