@@ -180,6 +180,34 @@ export interface Database {
                     updated_at?: string
                 }
             }
+            project_memberships: {
+                Row: {
+                    id: string
+                    project_id: string
+                    user_id: string
+                    group_id: string | null
+                    role: 'program_operator' | 'viewer'
+                    active: boolean
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: {
+                    id: string
+                    project_id: string
+                    user_id: string
+                    group_id?: string | null
+                    role: 'program_operator' | 'viewer'
+                    active?: boolean
+                    created_at?: string
+                    updated_at?: string
+                }
+                Update: {
+                    group_id?: string | null
+                    role?: 'program_operator' | 'viewer'
+                    active?: boolean
+                    updated_at?: string
+                }
+            }
             mentoring_memos: {
                 Row: {
                     id: string

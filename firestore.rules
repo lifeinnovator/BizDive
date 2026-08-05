@@ -3,53 +3,83 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
-    function hasProfile() {
-      return signedIn() && exists(/databases/$(database)/documents/profiles/$(request.auth.uid));
-    }
-    function currentProfile() {
-      return get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data;
-    }
-    function platformOperator() {
-      return hasProfile() && currentProfile().role in ['super_admin', 'service_operator'];
-    }
-    function institutionalOperator() {
-      return hasProfile() && currentProfile().role in ['group_admin', 'program_operator'];
-    }
-    function anyOperator() { return platformOperator() || institutionalOperator(); }
+    function profilePath(userId) { return /databases/$(database)/documents/profiles/$(userId); }
+    function projectPath(projectId) { return /databases/$(database)/documents/projects/$(projectId); }
+    function hasProfile() { return signedIn() && exists(profilePath(request.auth.uid)); }
+    function currentProfile() { return get(profilePath(request.auth.uid)).data; }
+    function platformOperator() { return hasProfile() && currentProfile().role in ['super_admin', 'service_operator']; }
+    function groupAdministrator() { return hasProfile() && currentProfile().role == 'group_admin' && currentProfile().group_id != null; }
+    function programOperator() { return hasProfile() && currentProfile().role == 'program_operator'; }
+    function institutionalOperator() { return groupAdministrator() || programOperator(); }
+    function sameInstitution(groupId) { return institutionalOperator() && currentProfile().group_id != null && groupId == currentProfile().group_id; }
+    function sameInstitutionUser(userId) { return groupAdministrator() && userId != null && exists(profilePath(userId)) && get(profilePath(userId)).data.group_id == currentProfile().group_id; }
+    function sameInstitutionProject(projectId) { return groupAdministrator() && projectId != null && exists(projectPath(projectId)) && get(projectPath(projectId)).data.group_id == currentProfile().group_id; }
+    function projectMembershipPath(projectId) { return /databases/$(database)/documents/project_memberships/$(projectId + '_' + request.auth.uid); }
+    function activeProjectMember(projectId) { return programOperator() && projectId != null && exists(projectMembershipPath(projectId)) && get(projectMembershipPath(projectId)).data.active == true; }
+    function canAccessUser(userId) { return userId != null && exists(profilePath(userId)) && (sameInstitutionUser(userId) || activeProjectMember(get(profilePath(userId)).data.project_id)); }
+    function canAccessProject(projectId) { return platformOperator() || sameInstitutionProject(projectId) || activeProjectMember(projectId); }
     function canManageInstitutionProfile() {
-      return institutionalOperator()
+      return groupAdministrator()
         && resource.data.group_id == currentProfile().group_id
         && request.resource.data.group_id == currentProfile().group_id
         && request.resource.data.role in ['program_operator', 'user'];
     }
 
     match /profiles/{userId} {
-      allow read: if signedIn() && (request.auth.uid == userId || anyOperator());
+      allow read: if signedIn() && (request.auth.uid == userId || platformOperator() || (groupAdministrator() && sameInstitution(resource.data.group_id)) || (programOperator() && activeProjectMember(resource.data.project_id)));
       allow create: if signedIn() && request.auth.uid == userId && request.resource.data.role == 'user';
-      allow update: if platformOperator()
-        || canManageInstitutionProfile()
-        || (signedIn()
-          && request.auth.uid == userId
-          && request.resource.data.role == resource.data.role
-          && request.resource.data.group_id == resource.data.group_id
-          && request.resource.data.project_id == resource.data.project_id);
+      allow update: if platformOperator() || canManageInstitutionProfile() || (signedIn() && request.auth.uid == userId && request.resource.data.role == resource.data.role && request.resource.data.group_id == resource.data.group_id && request.resource.data.project_id == resource.data.project_id);
       allow delete: if false;
     }
 
-    match /diagnosis_records/{id} {
-      allow read: if signedIn() && (resource.data.user_id == request.auth.uid || anyOperator());
-      allow create: if signedIn() && (request.resource.data.user_id == request.auth.uid || anyOperator());
-      allow update, delete: if signedIn() && (resource.data.user_id == request.auth.uid || anyOperator());
+    match /groups/{groupId} {
+      allow read: if platformOperator() || sameInstitution(groupId);
+      allow create, update, delete: if platformOperator();
     }
-    match /diagnosis_results/{id} {
-      allow read: if signedIn() && (resource.data.user_id == request.auth.uid || anyOperator());
-      allow create: if signedIn() && (request.resource.data.user_id == request.auth.uid || anyOperator());
-      allow update, delete: if signedIn() && (resource.data.user_id == request.auth.uid || anyOperator());
+
+    match /projects/{projectId} {
+      allow read: if platformOperator() || (groupAdministrator() && sameInstitution(resource.data.group_id)) || activeProjectMember(projectId);
+      allow create: if platformOperator() || (groupAdministrator() && request.resource.data.group_id == currentProfile().group_id);
+      allow update: if platformOperator() || (sameInstitution(resource.data.group_id) && request.resource.data.group_id == resource.data.group_id);
+      allow delete: if platformOperator();
     }
-    match /questions/{id} { allow read: if true; allow write: if platformOperator(); }
-    match /groups/{id} { allow read: if signedIn(); allow write: if platformOperator(); }
-    match /projects/{id} { allow read: if signedIn(); allow write: if anyOperator(); }
-    match /audit_logs/{id} { allow read: if platformOperator(); allow write: if false; }
-    match /{document=**} { allow read, write: if anyOperator(); }
+
+    match /project_memberships/{membershipId} {
+      allow read: if signedIn() && (platformOperator() || resource.data.user_id == request.auth.uid || canAccessProject(resource.data.project_id));
+      allow create: if platformOperator() || (sameInstitutionProject(request.resource.data.project_id) && request.resource.data.role in ['program_operator', 'viewer']);
+      allow update, delete: if platformOperator() || (sameInstitutionProject(resource.data.project_id) && request.resource.data.project_id == resource.data.project_id && request.resource.data.role in ['program_operator', 'viewer']);
+    }
+
+    match /diagnosis_records/{recordId} {
+      allow read: if signedIn() && (resource.data.user_id == request.auth.uid || platformOperator() || canAccessProject(resource.data.project_id) || canAccessUser(resource.data.user_id));
+      allow create: if signedIn() && (request.resource.data.user_id == request.auth.uid || platformOperator() || canAccessProject(request.resource.data.project_id));
+      allow update, delete: if signedIn() && (resource.data.user_id == request.auth.uid || platformOperator() || canAccessProject(resource.data.project_id));
+    }
+
+    match /diagnosis_results/{resultId} {
+      allow read: if signedIn() && (resource.data.user_id == request.auth.uid || platformOperator() || canAccessProject(resource.data.project_id) || canAccessUser(resource.data.user_id));
+      allow create: if signedIn() && (request.resource.data.user_id == request.auth.uid || platformOperator() || canAccessProject(request.resource.data.project_id));
+      allow update, delete: if signedIn() && (resource.data.user_id == request.auth.uid || platformOperator() || canAccessProject(resource.data.project_id));
+    }
+
+    match /questions/{questionId} { allow read: if true; allow write: if platformOperator(); }
+    match /reports/{reportId} {
+      allow read: if canAccessProject(resource.data.project_id);
+      allow create: if canAccessProject(request.resource.data.project_id);
+      allow update: if platformOperator() || (canAccessProject(resource.data.project_id) && request.resource.data.project_id == resource.data.project_id);
+      allow delete: if platformOperator();
+    }
+    match /consultations/{consultationId} {
+      allow create: if true;
+      allow read, update: if canAccessProject(resource.data.project_id);
+      allow delete: if platformOperator();
+    }
+    match /mentoring_memos/{memoId} {
+      allow read: if platformOperator() || canAccessUser(resource.data.company_id);
+      allow create: if platformOperator() || canAccessUser(request.resource.data.company_id);
+      allow update, delete: if platformOperator() || (canAccessUser(resource.data.company_id) && resource.data.author_id == request.auth.uid);
+    }
+    match /audit_logs/{logId} { allow read: if platformOperator(); allow write: if false; }
+    match /{document=**} { allow read, write: if false; }
   }
 }
