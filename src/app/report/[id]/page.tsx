@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import DiagnosisRadarChart from '@/components/report/RadarChart'
 import { STAGE_UNIT_SCORES, STAGE_MAX_SCORES, type Stage, type Dimension } from '@/lib/scoring-utils'
-import { generateGrowthRoadmap } from '@/utils/roadmapEngine'
+import { generateGrowthRoadmap, type DiagnosisScores } from '@/utils/roadmapEngine'
 import { ROADMAP_PRESCRIPTIONS } from '@/data/roadmapData'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
@@ -344,7 +344,7 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
                                                 const industry = profile?.industry || 'IT/SW/SaaS';
                                                 const stage = profile?.stage || '예비창업';
                                                 const roadmapData = generateGrowthRoadmap(
-                                                    dimensionScores as Record<string, number>,
+                                                    dimensionScores as unknown as DiagnosisScores,
                                                     totalScore,
                                                     industry,
                                                     stage
@@ -472,11 +472,11 @@ export default async function DynamicReportPage({ params }: ReportPageProps) {
                                                             </div>
                                                         </div>
                                                         <span className="text-[12px] text-slate-400 font-medium">
-                                                            {new Date(memo.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                                            {memo.created_at ? new Date(memo.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' }) : '-'}
                                                         </span>
                                                     </div>
                                                     <div className="bg-white border border-slate-200 rounded-xl p-5 text-[14px] text-slate-700 leading-relaxed shadow-sm">
-                                                        {memo.content.split('\n').map((line: string, i: number) => (
+                                                        {(memo.content || '').split('\n').map((line: string, i: number) => (
                                                             <p key={i} className={i > 0 ? 'mt-2' : ''}>{line}</p>
                                                         ))}
                                                     </div>
