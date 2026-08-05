@@ -53,6 +53,7 @@ export async function POST(request: Request) {
         company_id: assignment.company_id,
         application_id: assignment.application_id ?? null,
         participation_id: assignment.participation_id ?? null,
+        stage_id: assignment.stage_id ?? null,
         campaign_id: assignment.campaign_id,
         assignment_id: assignmentId,
         template_id: assignment.template_id,

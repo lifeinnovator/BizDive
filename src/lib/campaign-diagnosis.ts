@@ -21,6 +21,7 @@ export type CampaignDiagnosisContext = {
   companyId: string
   applicationId: string | null
   participationId: string | null
+  stageId: string | null
   round: number
   questions: CampaignQuestion[]
 }
@@ -145,6 +146,7 @@ export async function getCampaignDiagnosisContext(userId: string, projectId: str
       companyId: data.company_id,
       applicationId: data.application_id ?? null,
       participationId: data.participation_id ?? null,
+      stageId: data.stage_id ?? null,
       round: Number(campaignData.round),
       questions,
     }
