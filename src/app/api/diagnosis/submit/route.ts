@@ -23,9 +23,15 @@ export async function POST(request: Request) {
     const assignmentSnapshot = await assignmentRef.get()
     if (!assignmentSnapshot.exists) return NextResponse.json({ error: '진단 배정을 찾을 수 없습니다.' }, { status: 404 })
     const assignment = assignmentSnapshot.data()!
-    const memberships = await adminDb.collection('company_memberships').where('user_id', '==', user.id).get()
-    const isCompanyMember = memberships.docs.some((doc: FirebaseFirestore.QueryDocumentSnapshot) => doc.data().company_id === assignment.company_id && doc.data().active !== false)
-    if (!isCompanyMember || assignment.assessment_type !== 'self') return NextResponse.json({ error: '이 진단을 제출할 권한이 없습니다.' }, { status: 403 })
+    if (assignment.assessment_type === 'self') {
+      const memberships = await adminDb.collection('company_memberships').where('user_id', '==', user.id).get()
+      const isCompanyMember = memberships.docs.some((doc: FirebaseFirestore.QueryDocumentSnapshot) => doc.data().company_id === assignment.company_id && doc.data().active !== false)
+      if (!isCompanyMember) return NextResponse.json({ error: '이 진단을 제출할 권한이 없습니다.' }, { status: 403 })
+    } else if (assignment.assessment_type === 'expert') {
+      if (assignment.evaluator_user_id !== user.id) return NextResponse.json({ error: '배정된 진단위원만 제출할 수 있습니다.' }, { status: 403 })
+    } else {
+      return NextResponse.json({ error: '지원하지 않는 진단 유형입니다.' }, { status: 409 })
+    }
 
     const campaignRef = adminDb.collection('diagnosis_campaigns').doc(assignment.campaign_id) as FirebaseFirestore.DocumentReference
     const versionRef = adminDb.collection('diagnosis_template_versions').doc(assignment.template_version_id) as FirebaseFirestore.DocumentReference
@@ -37,6 +43,7 @@ export async function POST(request: Request) {
         transaction.get(versionRef),
       ])
       if (!freshAssignment.exists || freshAssignment.data()?.status !== 'pending') throw new Error('ASSIGNMENT_ALREADY_SUBMITTED')
+      if (freshAssignment.data()?.assessment_type === 'expert' && freshAssignment.data()?.evaluator_user_id !== user.id) throw new Error('ASSIGNMENT_FORBIDDEN')
       if (!campaignSnapshot.exists || !versionSnapshot.exists) throw new Error('DIAGNOSIS_CONFIGURATION_MISSING')
       const campaign = campaignSnapshot.data()!
       const version = versionSnapshot.data()!
@@ -95,6 +102,9 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof Error && error.message === 'ASSIGNMENT_ALREADY_SUBMITTED') {
       return NextResponse.json({ error: '이미 제출된 진단입니다.' }, { status: 409 })
+    }
+    if (error instanceof Error && error.message === 'ASSIGNMENT_FORBIDDEN') {
+      return NextResponse.json({ error: '배정된 진단위원만 제출할 수 있습니다.' }, { status: 403 })
     }
     if (error instanceof Error && ['DIAGNOSIS_CONFIGURATION_MISSING', 'CAMPAIGN_NOT_OPEN', 'INVALID_SCORING_CONFIGURATION'].includes(error.message)) {
       return NextResponse.json({ error: '현재 제출할 수 없는 진단입니다.' }, { status: 409 })

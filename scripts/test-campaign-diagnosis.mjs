@@ -18,13 +18,17 @@ const auth = getAuth()
 const db = getFirestore()
 const runId = randomUUID()
 const uid = `campaign_diagnosis_${runId}`
+const expertUid = `campaign_expert_${runId}`
 const companyId = `test_company_${runId}`
 const applicationId = `test_application_${runId}`
 const templateId = `test_template_${runId}`
 const versionId = `${templateId}_v1`
 const campaignId = `test_campaign_${runId}`
 const assignmentId = `${campaignId}_${applicationId}`
+const expertCampaignId = `test_expert_campaign_${runId}`
+const expertAssignmentId = `${expertCampaignId}_${applicationId}`
 let recordId = null
+let expertRecordId = null
 
 async function accessToken() {
   const token = await getApps()[0].options.credential.getAccessToken()
@@ -59,7 +63,7 @@ async function request(path, options = {}, expected = 200) {
 }
 
 async function deleteAuditLogs() {
-  const snapshot = await db.collection('audit_logs').where('target_id', '==', assignmentId).get()
+  const snapshot = await db.collection('audit_logs').where('target_id', 'in', [assignmentId, expertAssignmentId]).get()
   await Promise.all(snapshot.docs.map((document) => document.ref.delete()))
 }
 
@@ -70,9 +74,13 @@ try {
   const groupId = project.data().group_id
   const now = FieldValue.serverTimestamp()
 
-  await auth.createUser({ uid, email: `${uid}@example.invalid`, displayName: 'Campaign Diagnosis Test' })
+  await Promise.all([
+    auth.createUser({ uid, email: `${uid}@example.invalid`, displayName: 'Campaign Diagnosis Test' }),
+    auth.createUser({ uid: expertUid, email: `${expertUid}@example.invalid`, displayName: 'Campaign Expert Test' }),
+  ])
   await Promise.all([
     db.collection('profiles').doc(uid).set({ id: uid, email: `${uid}@example.invalid`, user_name: 'Campaign Diagnosis Test', company_name: 'Temporary Test Company', stage: 'P', industry: 'I', role: 'user', group_id: groupId, project_id: project.id, created_at: now, updated_at: now }),
+    db.collection('profiles').doc(expertUid).set({ id: expertUid, email: `${expertUid}@example.invalid`, user_name: 'Campaign Expert Test', role: 'user', group_id: groupId, project_id: null, created_at: now, updated_at: now }),
     db.collection('companies').doc(companyId).set({ id: companyId, name: 'Temporary Campaign Diagnosis Company', group_id: groupId, created_at: now, updated_at: now }),
     db.collection('company_memberships').doc(`${companyId}_${uid}`).set({ id: `${companyId}_${uid}`, company_id: companyId, user_id: uid, role: 'member', active: true, created_at: now, updated_at: now }),
     db.collection('project_applications').doc(applicationId).set({ id: applicationId, project_id: project.id, group_id: groupId, company_id: companyId, status: 'approved', created_at: now, updated_at: now }),
@@ -90,6 +98,8 @@ try {
     }),
     db.collection('diagnosis_campaigns').doc(campaignId).set({ id: campaignId, name: `Temporary Campaign ${runId}`, project_id: project.id, group_id: groupId, template_id: templateId, template_version_id: versionId, audience: 'participation', assessment_type: 'self', round: 97, status: 'open', opens_at: null, closes_at: null, created_at: now, updated_at: now }),
     db.collection('diagnosis_assignments').doc(assignmentId).set({ id: assignmentId, project_id: project.id, group_id: groupId, campaign_id: campaignId, template_id: templateId, template_version_id: versionId, assessment_type: 'self', audience: 'participation', company_id: companyId, application_id: applicationId, participation_id: applicationId, status: 'pending', assigned_at: now, submitted_at: null, updated_at: now }),
+    db.collection('diagnosis_campaigns').doc(expertCampaignId).set({ id: expertCampaignId, name: `Temporary Expert Campaign ${runId}`, project_id: project.id, group_id: groupId, template_id: templateId, template_version_id: versionId, audience: 'participation', assessment_type: 'expert', round: 97, status: 'open', opens_at: null, closes_at: null, created_at: now, updated_at: now }),
+    db.collection('diagnosis_assignments').doc(expertAssignmentId).set({ id: expertAssignmentId, project_id: project.id, group_id: groupId, campaign_id: expertCampaignId, template_id: templateId, template_version_id: versionId, assessment_type: 'expert', audience: 'participation', company_id: companyId, application_id: applicationId, participation_id: applicationId, evaluator_user_id: expertUid, status: 'pending', assigned_at: now, submitted_at: null, updated_at: now }),
   ])
 
   const idToken = await idTokenFor(uid)
@@ -111,20 +121,41 @@ try {
     method: 'POST', headers: { 'Content-Type': 'application/json', Cookie: cookie }, body: JSON.stringify({ assignmentId, responses: {} }),
   }, 409)
 
-  console.log(JSON.stringify({ passed: true, checks: ['campaign snapshot rendering', 'authenticated company membership', 'stable response IDs', 'server-side weighted scoring', 'atomic assignment submission', 'unknown response removal', 'duplicate submission rejection'] }, null, 2))
+  await request('/api/diagnosis/submit', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Cookie: cookie }, body: JSON.stringify({ assignmentId: expertAssignmentId, responses: {} }),
+  }, 403)
+  const expertToken = await idTokenFor(expertUid)
+  const expertLogin = await request('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ idToken: expertToken }) })
+  const expertCookie = expertLogin.response.headers.get('set-cookie')?.split(';')[0]
+  if (!expertCookie) throw new Error('The expert session cookie was not issued.')
+  const expertPage = await request(`/diagnosis/expert?assignmentId=${encodeURIComponent(expertAssignmentId)}`, { headers: { Cookie: expertCookie } })
+  if (!expertPage.result.text?.includes(`Temporary Expert Campaign ${runId}`) || !expertPage.result.text.includes('진단위원 진단')) throw new Error('The expert assignment was not rendered.')
+  const expertSubmission = await request('/api/diagnosis/submit', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Cookie: expertCookie }, body: JSON.stringify({ assignmentId: expertAssignmentId, responses: { [`test_q1_${runId}`]: false, [`test_q2_${runId}`]: true } }),
+  })
+  expertRecordId = expertSubmission.result.recordId
+  const expertRecord = await db.collection('diagnosis_records').doc(expertRecordId).get()
+  if (expertSubmission.result.totalScore !== 25 || expertRecord.data()?.assessment_type !== 'expert' || expertRecord.data()?.respondent_user_id !== expertUid) throw new Error('Expert diagnosis persistence failed.')
+
+  console.log(JSON.stringify({ passed: true, checks: ['campaign snapshot rendering', 'authenticated company membership', 'stable response IDs', 'server-side weighted scoring', 'atomic assignment submission', 'unknown response removal', 'duplicate submission rejection', 'unassigned expert rejection', 'expert assignment rendering', 'expert diagnosis submission'] }, null, 2))
 } finally {
   await Promise.allSettled([
     auth.deleteUser(uid),
+    auth.deleteUser(expertUid),
     db.collection('profiles').doc(uid).delete(),
+    db.collection('profiles').doc(expertUid).delete(),
     db.collection('companies').doc(companyId).delete(),
     db.collection('company_memberships').doc(`${companyId}_${uid}`).delete(),
     db.collection('project_applications').doc(applicationId).delete(),
     db.collection('project_participations').doc(applicationId).delete(),
     db.collection('diagnosis_assignments').doc(assignmentId).delete(),
+    db.collection('diagnosis_assignments').doc(expertAssignmentId).delete(),
     db.collection('diagnosis_campaigns').doc(campaignId).delete(),
+    db.collection('diagnosis_campaigns').doc(expertCampaignId).delete(),
     db.collection('diagnosis_template_versions').doc(versionId).delete(),
     db.collection('diagnosis_templates').doc(templateId).delete(),
     recordId ? db.collection('diagnosis_records').doc(recordId).delete() : Promise.resolve(),
+    expertRecordId ? db.collection('diagnosis_records').doc(expertRecordId).delete() : Promise.resolve(),
     deleteAuditLogs(),
   ])
 }

@@ -67,8 +67,8 @@ export default function DiagnosisForm({
     }, [questions])
 
     const draftKey = useMemo(
-        () => `bizdive_diagnosis_draft:${userId || profile.email || 'guest'}:${projectId || 'individual'}:${round}`,
-        [profile.email, projectId, round, userId]
+        () => `bizdive_diagnosis_draft:${userId || profile.email || 'guest'}:${campaignContext?.assignmentId || projectId || 'individual'}:${round}`,
+        [campaignContext?.assignmentId, profile.email, projectId, round, userId]
     )
 
     useEffect(() => {
@@ -310,7 +310,7 @@ export default function DiagnosisForm({
             <main className="flex-1 max-w-3xl w-full mx-auto px-4 py-8 sm:py-12 pb-32">
                 {campaignContext && (
                     <div className="mb-6 rounded-2xl border border-indigo-100 bg-indigo-50 px-5 py-4">
-                        <p className="text-xs font-bold uppercase tracking-wide text-indigo-600">프로젝트 진단 · {campaignContext.round}회차</p>
+                        <p className="text-xs font-bold uppercase tracking-wide text-indigo-600">{campaignContext.assessmentType === 'expert' ? '진단위원 진단' : '프로젝트 자가진단'} · {campaignContext.round}회차</p>
                         <p className="mt-1 font-semibold text-slate-900">{campaignContext.campaignName}</p>
                     </div>
                 )}

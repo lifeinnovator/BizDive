@@ -15,10 +15,13 @@ export type CampaignQuestion = {
 export type CampaignDiagnosisContext = {
   assignmentId: string
   campaignId: string
+  projectId: string
   campaignName: string
+  assessmentType: 'self' | 'expert'
   templateId: string
   templateVersionId: string
   companyId: string
+  companyName: string
   applicationId: string | null
   participationId: string | null
   stageId: string | null
@@ -137,13 +140,17 @@ export async function getCampaignDiagnosisContext(userId: string, projectId: str
     if (campaignData.opens_at?.toMillis?.() > now || campaignData.closes_at?.toMillis?.() < now) continue
     const questions = parseCampaignQuestions(version.data()?.question_snapshots)
     if (!questions.length) continue
+    const company = await adminDb.collection('companies').doc(data.company_id).get()
     return {
       assignmentId: assignment.id,
       campaignId: data.campaign_id,
+      projectId,
       campaignName: typeof campaignData.name === 'string' ? campaignData.name : '프로젝트 진단',
+      assessmentType: 'self',
       templateId: data.template_id,
       templateVersionId: data.template_version_id,
       companyId: data.company_id,
+      companyName: String(company.data()?.name || data.company_id),
       applicationId: data.application_id ?? null,
       participationId: data.participation_id ?? null,
       stageId: data.stage_id ?? null,
@@ -152,4 +159,39 @@ export async function getCampaignDiagnosisContext(userId: string, projectId: str
     }
   }
   return null
+}
+
+export async function getExpertDiagnosisContext(userId: string, assignmentId: string): Promise<CampaignDiagnosisContext | null> {
+  if (!adminDb || !assignmentId) return null
+  const assignment = await adminDb.collection('diagnosis_assignments').doc(assignmentId).get()
+  if (!assignment.exists) return null
+  const data = assignment.data()!
+  if (data.assessment_type !== 'expert' || data.evaluator_user_id !== userId || data.status !== 'pending') return null
+  const [campaign, version, company] = await Promise.all([
+    adminDb.collection('diagnosis_campaigns').doc(data.campaign_id).get(),
+    adminDb.collection('diagnosis_template_versions').doc(data.template_version_id).get(),
+    adminDb.collection('companies').doc(data.company_id).get(),
+  ])
+  if (!campaign.exists || !version.exists || !company.exists) return null
+  const campaignData = campaign.data()!
+  const now = Date.now()
+  if (campaignData.status !== 'open' || version.data()?.status !== 'published' || campaignData.opens_at?.toMillis?.() > now || campaignData.closes_at?.toMillis?.() < now) return null
+  const questions = parseCampaignQuestions(version.data()?.question_snapshots)
+  if (!questions.length) return null
+  return {
+    assignmentId,
+    campaignId: data.campaign_id,
+    projectId: data.project_id,
+    campaignName: typeof campaignData.name === 'string' ? campaignData.name : '진단위원 진단',
+    assessmentType: 'expert',
+    templateId: data.template_id,
+    templateVersionId: data.template_version_id,
+    companyId: data.company_id,
+    companyName: String(company.data()?.name || data.company_id),
+    applicationId: data.application_id ?? null,
+    participationId: data.participation_id ?? null,
+    stageId: data.stage_id ?? null,
+    round: Number(campaignData.round),
+    questions,
+  }
 }
