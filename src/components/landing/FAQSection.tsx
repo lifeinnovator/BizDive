@@ -12,6 +12,7 @@ const FAQItemComponent = ({ item, index, isOpen, onToggle }: { item: FAQItem, in
     <div className={`bg-white border transition-all duration-200 rounded-xl overflow-hidden ${isOpen ? 'border-indigo-200 shadow-sm' : 'border-slate-100 hover:border-slate-200'}`}>
       <button
         onClick={onToggle}
+        aria-expanded={isOpen}
         className="w-full flex items-start gap-4 p-5 text-left transition-colors"
       >
         <span className="font-mono text-xs text-slate-400 pt-1.5 w-6 flex-shrink-0">
@@ -95,10 +96,11 @@ const FAQSection = () => {
             <button
               key={chip.id}
               onClick={() => {
-                setFilter(chip.id as any);
+                setFilter(chip.id as typeof filter);
                 setOpenIndex(null);
               }}
-              className={`px-5 py-2 rounded-full text-xs font-bold transition-all border ${
+              aria-pressed={filter === chip.id}
+              className={`min-h-11 px-5 py-2 rounded-full text-xs font-bold transition-all border ${
                 filter === chip.id
                   ? 'bg-indigo-950 text-white border-indigo-900 shadow-sm'
                   : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'

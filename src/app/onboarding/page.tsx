@@ -135,6 +135,7 @@ export default function OnboardingPage() {
                     size="icon"
                     onClick={() => router.back()}
                     className="absolute top-0 left-0 -ml-2 sm:-ml-12 hover:bg-slate-200/50 rounded-full transition-colors"
+                    aria-label="이전 화면으로 돌아가기"
                 >
                     <ArrowLeft className="h-5 w-5 text-slate-500" />
                 </Button>
