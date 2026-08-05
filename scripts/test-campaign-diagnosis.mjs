@@ -29,6 +29,8 @@ const expertCampaignId = `test_expert_campaign_${runId}`
 const expertAssignmentId = `${expertCampaignId}_${applicationId}`
 let recordId = null
 let expertRecordId = null
+let engagementId = null
+let serviceProjectId = null
 
 async function accessToken() {
   const token = await getApps()[0].options.credential.getAccessToken()
@@ -63,7 +65,7 @@ async function request(path, options = {}, expected = 200) {
 }
 
 async function deleteAuditLogs() {
-  const snapshot = await db.collection('audit_logs').where('target_id', 'in', [assignmentId, expertAssignmentId]).get()
+  const snapshot = await db.collection('audit_logs').where('target_id', 'in', [assignmentId, expertAssignmentId, ...(engagementId ? [engagementId] : [])]).get()
   await Promise.all(snapshot.docs.map((document) => document.ref.delete()))
 }
 
@@ -71,6 +73,7 @@ try {
   const projects = await db.collection('projects').where('group_id', '!=', null).limit(1).get()
   if (projects.empty) throw new Error('An institution project is required for this test.')
   const project = projects.docs[0]
+  serviceProjectId = project.id
   const groupId = project.data().group_id
   const now = FieldValue.serverTimestamp()
 
@@ -81,6 +84,7 @@ try {
   await Promise.all([
     db.collection('profiles').doc(uid).set({ id: uid, email: `${uid}@example.invalid`, user_name: 'Campaign Diagnosis Test', company_name: 'Temporary Test Company', stage: 'P', industry: 'I', role: 'user', group_id: groupId, project_id: project.id, created_at: now, updated_at: now }),
     db.collection('profiles').doc(expertUid).set({ id: expertUid, email: `${expertUid}@example.invalid`, user_name: 'Campaign Expert Test', role: 'user', group_id: groupId, project_id: null, created_at: now, updated_at: now }),
+    db.collection('mentor_profiles').doc(expertUid).set({ id: expertUid, user_id: expertUid, display_name: 'Campaign Expert Test', headline: 'Temporary market mentor', specialty_codes: ['market_customer'], scope: 'global', group_id: null, active: true, created_at: now, updated_at: now }),
     db.collection('companies').doc(companyId).set({ id: companyId, name: 'Temporary Campaign Diagnosis Company', group_id: groupId, created_at: now, updated_at: now }),
     db.collection('company_memberships').doc(`${companyId}_${uid}`).set({ id: `${companyId}_${uid}`, company_id: companyId, user_id: uid, role: 'member', active: true, created_at: now, updated_at: now }),
     db.collection('project_applications').doc(applicationId).set({ id: applicationId, project_id: project.id, group_id: groupId, company_id: companyId, status: 'approved', created_at: now, updated_at: now }),
@@ -137,13 +141,27 @@ try {
   const expertRecord = await db.collection('diagnosis_records').doc(expertRecordId).get()
   if (expertSubmission.result.totalScore !== 25 || expertRecord.data()?.assessment_type !== 'expert' || expertRecord.data()?.respondent_user_id !== expertUid) throw new Error('Expert diagnosis persistence failed.')
 
-  console.log(JSON.stringify({ passed: true, checks: ['campaign snapshot rendering', 'authenticated company membership', 'stable response IDs', 'server-side weighted scoring', 'atomic assignment submission', 'unknown response removal', 'duplicate submission rejection', 'unassigned expert rejection', 'expert assignment rendering', 'expert diagnosis submission'] }, null, 2))
+  await request(`/api/mentoring/recommendations?projectId=${encodeURIComponent(project.id)}`, { headers: { Cookie: expertCookie } }, 403)
+  const recommendations = await request(`/api/mentoring/recommendations?projectId=${encodeURIComponent(project.id)}`, { headers: { Cookie: cookie } })
+  if (recommendations.result.needs[0]?.code !== 'market_customer' || recommendations.result.mentors[0]?.id !== expertUid) throw new Error('Diagnosis-linked mentor recommendation failed.')
+  const mentoringRequest = await request('/api/mentoring/recommendations', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Cookie: cookie }, body: JSON.stringify({ projectId: project.id, mentorId: expertUid, requestedCodes: ['market_customer'] }),
+  }, 201)
+  engagementId = mentoringRequest.result.engagement.id
+  await request('/api/mentoring/recommendations', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Cookie: cookie }, body: JSON.stringify({ projectId: project.id, mentorId: expertUid, requestedCodes: ['market_customer'] }),
+  }, 409)
+  const engagement = await db.collection('mentoring_engagements').doc(engagementId).get()
+  if (engagement.data()?.company_id !== companyId || engagement.data()?.mentor_user_id !== expertUid || engagement.data()?.status !== 'requested') throw new Error('Mentoring engagement persistence failed.')
+
+  console.log(JSON.stringify({ passed: true, checks: ['campaign snapshot rendering', 'authenticated company membership', 'stable response IDs', 'server-side weighted scoring', 'atomic assignment submission', 'unknown response removal', 'duplicate submission rejection', 'unassigned expert rejection', 'expert assignment rendering', 'expert diagnosis submission', 'non-participant recommendation rejection', 'diagnosis-linked mentor recommendation', 'mentoring request persistence', 'duplicate mentoring request rejection'] }, null, 2))
 } finally {
   await Promise.allSettled([
     auth.deleteUser(uid),
     auth.deleteUser(expertUid),
     db.collection('profiles').doc(uid).delete(),
     db.collection('profiles').doc(expertUid).delete(),
+    db.collection('mentor_profiles').doc(expertUid).delete(),
     db.collection('companies').doc(companyId).delete(),
     db.collection('company_memberships').doc(`${companyId}_${uid}`).delete(),
     db.collection('project_applications').doc(applicationId).delete(),
@@ -156,6 +174,8 @@ try {
     db.collection('diagnosis_templates').doc(templateId).delete(),
     recordId ? db.collection('diagnosis_records').doc(recordId).delete() : Promise.resolve(),
     expertRecordId ? db.collection('diagnosis_records').doc(expertRecordId).delete() : Promise.resolve(),
+    engagementId ? db.collection('mentoring_engagements').doc(engagementId).delete() : Promise.resolve(),
+    serviceProjectId ? db.collection('mentoring_engagement_locks').doc(`${serviceProjectId}_${companyId}_${expertUid}`).delete() : Promise.resolve(),
     deleteAuditLogs(),
   ])
 }
