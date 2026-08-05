@@ -6,17 +6,19 @@ import { Database } from '@/types/database'
 import { getGuestQuestions } from '@/app/diagnosis/actions'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
+import type { CampaignDiagnosisContext, CampaignQuestion } from '@/lib/campaign-diagnosis'
 
-type Question = Database['public']['Tables']['questions']['Row']
+type Question = Database['public']['Tables']['questions']['Row'] | CampaignQuestion
 
 interface DiagnosisWrapperProps {
     initialQuestions?: Question[]
     user?: { id: string } | null
     profile?: ProfileData | null
     isGuest?: boolean
+    campaignContext?: CampaignDiagnosisContext | null
 }
 
-export default function DiagnosisWrapper({ initialQuestions, user, profile, isGuest }: DiagnosisWrapperProps) {
+export default function DiagnosisWrapper({ initialQuestions, user, profile, isGuest, campaignContext }: DiagnosisWrapperProps) {
     const router = useRouter()
     const searchParams = useSearchParams()
     const round = parseInt(searchParams.get('round') || '1')
@@ -28,6 +30,7 @@ export default function DiagnosisWrapper({ initialQuestions, user, profile, isGu
 
     useEffect(() => {
         if (isGuest) {
+            void Promise.resolve().then(async () => {
             // Load Guest Data from Session
             const guestDataStr = sessionStorage.getItem('bizdive_guest')
             if (!guestDataStr) {
@@ -51,7 +54,7 @@ export default function DiagnosisWrapper({ initialQuestions, user, profile, isGu
 
             // Fetch Questions based on Guest Choice
             const fetchQuestions = async () => {
-                const { data, error } = await getGuestQuestions(guestData.stage, guestData.industry)
+                const { data } = await getGuestQuestions(guestData.stage, guestData.industry)
                 if (data) {
                     setQuestions(data)
                 } else {
@@ -60,7 +63,8 @@ export default function DiagnosisWrapper({ initialQuestions, user, profile, isGu
                 setLoading(false)
             }
 
-            fetchQuestions()
+            await fetchQuestions()
+            })
         }
     }, [isGuest, router])
 
@@ -87,6 +91,7 @@ export default function DiagnosisWrapper({ initialQuestions, user, profile, isGu
             isGuest={isGuest}
             round={round}
             projectId={projectIdString}
+            campaignContext={campaignContext}
         />
     )
 }

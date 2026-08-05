@@ -49,8 +49,8 @@ const QuestionSection: React.FC<QuestionSectionProps> = ({
             </div>
 
             <div className="space-y-3">
-                {section.questions.map((question, qIdx) => {
-                    const questionId = `${section.id}_${qIdx}`;
+                {section.questions.map((question) => {
+                    const questionId = question.id;
                     const isChecked = answers[questionId] || false;
 
                     return (

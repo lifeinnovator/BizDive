@@ -1,15 +1,16 @@
 'use client'
 
 import React, { useEffect, useState, useMemo } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Database } from '@/types/database'
 import QuestionSection from './QuestionSection'
 import { Button } from '@/components/ui/button'
 import { CheckCircle2, X } from 'lucide-react'
-import { STAGE_UNIT_SCORES, STAGE_MAX_SCORES, computeSectionScore, getGrade, type Stage, type Dimension } from '@/lib/scoring-utils'
+import { STAGE_UNIT_SCORES, computeSectionScore, getGrade, type Stage, type Dimension } from '@/lib/scoring-utils'
+import type { CampaignDiagnosisContext, CampaignQuestion } from '@/lib/campaign-diagnosis'
 
-type Question = Database['public']['Tables']['questions']['Row']
+type Question = Database['public']['Tables']['questions']['Row'] | CampaignQuestion
 
 export interface ProfileData {
     email?: string;
@@ -29,6 +30,7 @@ interface DiagnosisFormProps {
     isGuest?: boolean
     round?: number
     projectId?: string | null
+    campaignContext?: CampaignDiagnosisContext | null
 }
 
 export default function DiagnosisForm({
@@ -37,14 +39,13 @@ export default function DiagnosisForm({
     profile,
     isGuest = false,
     round = 1,
-    projectId = null
+    projectId = null,
+    campaignContext = null
 }: DiagnosisFormProps) {
     const router = useRouter()
     const [answers, setAnswers] = useState<Record<string, boolean>>({})
     const [currentStep, setCurrentStep] = useState(0)
     const [draftReady, setDraftReady] = useState(false)
-
-    const searchParams = useSearchParams()
 
     // Group questions by dimension
     const sections = useMemo(() => {
@@ -96,7 +97,7 @@ export default function DiagnosisForm({
     }, [answers, currentStep, draftKey, draftReady])
 
     // Calculate scores
-    const { totalScore, sectionScores, sectionEarnedScores, sectionMaxScores } = useMemo(() => {
+    const { totalScore, sectionScores, sectionMaxScores } = useMemo(() => {
         const calculatedSectionScores: Record<string, number> = {}
         const earnedScores: Record<string, number> = {}
         const maxScores: Record<string, number> = {}
@@ -109,10 +110,10 @@ export default function DiagnosisForm({
             const unitScore = unitScores[sec.id as Dimension] || 1.0
 
             // Map questions to { points, checked } for utility
-            const items = sec.questions.map((q, idx) => {
-                const questionKey = `${sec.id}_${idx}`
+            const items = sec.questions.map((q) => {
+                const questionKey = q.id
                 const checked = answers[questionKey] === true
-                return { points: unitScore, checked }
+                return { points: campaignContext ? q.score_weight : unitScore, checked }
             })
 
             const result = computeSectionScore(items)
@@ -131,10 +132,9 @@ export default function DiagnosisForm({
         return {
             totalScore: Math.round(scoreSum * 10) / 10,
             sectionScores: calculatedSectionScores,
-            sectionEarnedScores: earnedScores,
             sectionMaxScores: maxScores
         }
-    }, [answers, sections, profile])
+    }, [answers, sections, profile, campaignContext])
 
     const handleAnswerChange = (questionId: string, checked: boolean) => {
         setAnswers(prev => ({
@@ -158,13 +158,36 @@ export default function DiagnosisForm({
     }
 
     const handleViewReport = async () => {
-        if (totalScore === 0) {
+        if (!campaignContext && totalScore === 0) {
             alert('최소 1개 이상의 문항에 응답해주세요.')
             return
         }
 
         let newRecordId: string | null = null;
         try {
+            if (campaignContext) {
+                const response = await fetch('/api/diagnosis/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ assignmentId: campaignContext.assignmentId, responses: answers }),
+                })
+                const payload = await response.json()
+                if (!response.ok) throw new Error(payload.error || '진단을 저장하지 못했습니다.')
+                newRecordId = payload.recordId
+                const previewData = {
+                    answers: payload.normalizedResponses,
+                    totalScore: payload.totalScore,
+                    sectionScores: payload.dimensionScores,
+                    sectionMaxScores: payload.dimensionMaxScores,
+                    profile, isGuest, userId, round, projectId, recordId: newRecordId,
+                    campaignId: campaignContext.campaignId,
+                    templateVersionId: campaignContext.templateVersionId,
+                }
+                sessionStorage.setItem('bizdive_report_preview', JSON.stringify(previewData))
+                sessionStorage.removeItem(draftKey)
+                router.push('/report/preview')
+                return
+            }
             const { createClient } = await import('@/lib/supabase');
             const supabase = createClient();
             
@@ -192,6 +215,10 @@ export default function DiagnosisForm({
             }
         } catch (err) {
             console.error("Failed to auto-save diagnosis:", err);
+            if (campaignContext) {
+                alert(err instanceof Error ? err.message : '진단을 저장하지 못했습니다. 잠시 후 다시 시도해주세요.')
+                return
+            }
         }
 
         const previewData = {
@@ -281,6 +308,12 @@ export default function DiagnosisForm({
             </div>
 
             <main className="flex-1 max-w-3xl w-full mx-auto px-4 py-8 sm:py-12 pb-32">
+                {campaignContext && (
+                    <div className="mb-6 rounded-2xl border border-indigo-100 bg-indigo-50 px-5 py-4">
+                        <p className="text-xs font-bold uppercase tracking-wide text-indigo-600">프로젝트 진단 · {campaignContext.round}회차</p>
+                        <p className="mt-1 font-semibold text-slate-900">{campaignContext.campaignName}</p>
+                    </div>
+                )}
                 <div className="space-y-8 animate-fade-in-up" key={currentStep}>
                         {/* Chapter Title */}
                         <div className="bg-white border border-slate-100 p-8 sm:p-10 rounded-3xl shadow-soft">
