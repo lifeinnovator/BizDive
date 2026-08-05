@@ -44,7 +44,7 @@ export default async function DiagnosisPage({ searchParams }: DiagnosisPageProps
             <DiagnosisWrapper
                 initialQuestions={questions}
                 user={user}
-                profile={profile}
+                profile={campaignContext ? { ...profile, company_name: campaignContext.companyName } : profile}
                 isGuest={false}
                 campaignContext={campaignContext}
             />

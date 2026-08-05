@@ -22,7 +22,7 @@ export default function DiagnosisWrapper({ initialQuestions, user, profile, isGu
     const router = useRouter()
     const searchParams = useSearchParams()
     const round = parseInt(searchParams.get('round') || '1')
-    const projectIdString = searchParams.get('projectId') || (profile?.project_id as string | undefined) || null
+    const projectIdString = campaignContext?.projectId || searchParams.get('projectId') || (profile?.project_id as string | undefined) || null
 
     const [questions, setQuestions] = useState<Question[]>(initialQuestions || [])
     const [guestProfile, setGuestProfile] = useState<ProfileData | null>(null)
