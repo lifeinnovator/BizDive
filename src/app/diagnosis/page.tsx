@@ -3,8 +3,13 @@ import { redirect } from 'next/navigation'
 import DiagnosisWrapper from '@/components/diagnosis/DiagnosisWrapper'
 import { getDiagnosisQuestions } from '@/lib/diagnosis-logic'
 
-export default async function DiagnosisPage() {
+type DiagnosisPageProps = {
+    searchParams: Promise<Record<string, string | string[] | undefined>>
+}
+
+export default async function DiagnosisPage({ searchParams }: DiagnosisPageProps) {
     const supabase = await createClient()
+    const params = await searchParams
 
     // 1. Check Auth (Do NOT redirect if null, enable Guest mode)
     const { data: { user } } = await supabase.auth.getUser()
@@ -38,6 +43,13 @@ export default async function DiagnosisPage() {
             />
         )
     } else {
+        const projectId = typeof params.projectId === 'string' ? params.projectId : null
+        const round = typeof params.round === 'string' ? params.round : '1'
+        if (projectId) {
+            const nextPath = `/diagnosis?projectId=${encodeURIComponent(projectId)}&round=${encodeURIComponent(round)}`
+            return redirect(`/login?next=${encodeURIComponent(nextPath)}`)
+        }
+
         // GUEST FLOW
         return (
             <DiagnosisWrapper isGuest={true} />

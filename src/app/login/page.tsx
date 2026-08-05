@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail, Lock, AlertCircle, Loader2, Eye, EyeOff, User, ArrowRight, CheckCircle, ArrowLeft } from 'lucide-react';
+import { Mail, Lock, AlertCircle, Loader2, Eye, EyeOff, CheckCircle, ArrowLeft } from 'lucide-react';
 
 export default function LoginPage() {
     const router = useRouter();
@@ -20,7 +20,6 @@ export default function LoginPage() {
     // Form States
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [username, setUsername] = useState('');
     const [rememberEmail, setRememberEmail] = useState(false);
 
     // UI States
@@ -46,23 +45,6 @@ export default function LoginPage() {
     const handleCloseNotice = () => {
         localStorage.setItem('bizdive_hide_migration_notice', 'true');
         setHideNotice(true);
-    };
-
-    const handleGuestStart = async () => {
-        if (!username.trim() || !email.trim()) {
-            setError('이름과 이메일을 모두 입력해주세요.');
-            return;
-        }
-
-        // Save to Session Storage for Onboarding
-        if (typeof window !== 'undefined') {
-            sessionStorage.setItem('bizdive_guest', JSON.stringify({
-                username,
-                email
-            }));
-        }
-
-        router.push('/onboarding');
     };
 
     const handlePasswordReset = async () => {
@@ -126,14 +108,17 @@ export default function LoginPage() {
                 }
 
                 if (data.user) {
-                    // Always redirect to dashboard on the main site
-                    router.push('/dashboard');
+                    const requestedPath = new URLSearchParams(window.location.search).get('next');
+                    const safePath = requestedPath?.startsWith('/') && !requestedPath.startsWith('//')
+                        ? requestedPath
+                        : '/dashboard';
+                    router.push(safePath);
                 } else {
                     router.push('/dashboard');
                 }
                 router.refresh();
             }
-        } catch (err) {
+        } catch {
             setError('로그인 중 오류가 발생했습니다.');
         } finally {
             setLoading(false);
