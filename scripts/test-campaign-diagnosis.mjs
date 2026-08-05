@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { randomUUID } from 'node:crypto'
 import { cert, getApps, initializeApp } from 'firebase-admin/app'
 import { getAuth } from 'firebase-admin/auth'
-import { FieldValue, getFirestore } from 'firebase-admin/firestore'
+import { FieldValue, Timestamp, getFirestore } from 'firebase-admin/firestore'
 
 const baseUrl = process.env.BIZDIVE_TEST_URL
 const credentialPath = process.env.GOOGLE_APPLICATION_CREDENTIALS
@@ -31,6 +31,7 @@ let recordId = null
 let expertRecordId = null
 let engagementId = null
 let serviceProjectId = null
+let mentoringSessionId = null
 
 async function accessToken() {
   const token = await getApps()[0].options.credential.getAccessToken()
@@ -65,7 +66,7 @@ async function request(path, options = {}, expected = 200) {
 }
 
 async function deleteAuditLogs() {
-  const snapshot = await db.collection('audit_logs').where('target_id', 'in', [assignmentId, expertAssignmentId, ...(engagementId ? [engagementId] : [])]).get()
+  const snapshot = await db.collection('audit_logs').where('target_id', 'in', [assignmentId, expertAssignmentId, ...(engagementId ? [engagementId] : []), ...(mentoringSessionId ? [mentoringSessionId] : [])]).get()
   await Promise.all(snapshot.docs.map((document) => document.ref.delete()))
 }
 
@@ -153,8 +154,24 @@ try {
   }, 409)
   const engagement = await db.collection('mentoring_engagements').doc(engagementId).get()
   if (engagement.data()?.company_id !== companyId || engagement.data()?.mentor_user_id !== expertUid || engagement.data()?.status !== 'requested') throw new Error('Mentoring engagement persistence failed.')
+  mentoringSessionId = `test_mentoring_session_${runId}`
+  await Promise.all([
+    db.collection('mentoring_engagements').doc(engagementId).update({ status: 'accepted', updated_at: FieldValue.serverTimestamp() }),
+    db.collection('mentoring_sessions').doc(mentoringSessionId).set({ id: mentoringSessionId, engagement_id: engagementId, project_id: project.id, group_id: groupId, company_id: companyId, mentor_user_id: expertUid, starts_at: Timestamp.fromDate(new Date('2030-01-10T09:00:00.000Z')), ends_at: Timestamp.fromDate(new Date('2030-01-10T10:00:00.000Z')), mode: 'online', status: 'scheduled', created_at: FieldValue.serverTimestamp(), updated_at: FieldValue.serverTimestamp() }),
+  ])
+  await request(`/api/mentoring/sessions/${mentoringSessionId}/log`, { method: 'PUT', headers: { 'Content-Type': 'application/json', Cookie: cookie }, body: JSON.stringify({ menteeContent: 'Participant note', institutionContent: 'Institution note', menteeVisible: false }) }, 403)
+  const mentorWorkspace = await request('/api/mentoring/workspace', { headers: { Cookie: expertCookie } })
+  if (!mentorWorkspace.result.sessions.some((session) => session.id === mentoringSessionId && session.viewer_role === 'mentor')) throw new Error('Mentor workspace authorization failed.')
+  await request(`/api/mentoring/sessions/${mentoringSessionId}/log`, { method: 'PUT', headers: { 'Content-Type': 'application/json', Cookie: expertCookie }, body: JSON.stringify({ menteeContent: 'Participant note', institutionContent: 'Institution note', menteeVisible: false }) })
+  const hiddenWorkspace = await request('/api/mentoring/workspace', { headers: { Cookie: cookie } })
+  const hiddenLog = hiddenWorkspace.result.sessions.find((session) => session.id === mentoringSessionId)?.log
+  if (hiddenLog?.mentee_visible !== false || hiddenLog?.institution_content !== undefined || hiddenLog?.mentee_content !== undefined) throw new Error('Hidden mentee log redaction failed.')
+  await request(`/api/mentoring/sessions/${mentoringSessionId}/log`, { method: 'PUT', headers: { 'Content-Type': 'application/json', Cookie: expertCookie }, body: JSON.stringify({ menteeContent: 'Participant note', institutionContent: 'Institution note', menteeVisible: true }) })
+  const visibleWorkspace = await request('/api/mentoring/workspace', { headers: { Cookie: cookie } })
+  const visibleLog = visibleWorkspace.result.sessions.find((session) => session.id === mentoringSessionId)?.log
+  if (visibleLog?.mentee_content !== 'Participant note' || visibleLog?.institution_content !== undefined) throw new Error('Role-separated mentoring log response failed.')
 
-  console.log(JSON.stringify({ passed: true, checks: ['campaign snapshot rendering', 'authenticated company membership', 'stable response IDs', 'server-side weighted scoring', 'atomic assignment submission', 'unknown response removal', 'duplicate submission rejection', 'unassigned expert rejection', 'expert assignment rendering', 'expert diagnosis submission', 'non-participant recommendation rejection', 'diagnosis-linked mentor recommendation', 'mentoring request persistence', 'duplicate mentoring request rejection'] }, null, 2))
+  console.log(JSON.stringify({ passed: true, checks: ['campaign snapshot rendering', 'authenticated company membership', 'stable response IDs', 'server-side weighted scoring', 'atomic assignment submission', 'unknown response removal', 'duplicate submission rejection', 'unassigned expert rejection', 'expert assignment rendering', 'expert diagnosis submission', 'non-participant recommendation rejection', 'diagnosis-linked mentor recommendation', 'mentoring request persistence', 'duplicate mentoring request rejection', 'non-mentor log rejection', 'mentor workspace authorization', 'hidden mentee log redaction', 'role-separated mentoring log response'] }, null, 2))
 } finally {
   await Promise.allSettled([
     auth.deleteUser(uid),
@@ -175,6 +192,8 @@ try {
     recordId ? db.collection('diagnosis_records').doc(recordId).delete() : Promise.resolve(),
     expertRecordId ? db.collection('diagnosis_records').doc(expertRecordId).delete() : Promise.resolve(),
     engagementId ? db.collection('mentoring_engagements').doc(engagementId).delete() : Promise.resolve(),
+    mentoringSessionId ? db.collection('mentoring_sessions').doc(mentoringSessionId).delete() : Promise.resolve(),
+    mentoringSessionId ? db.collection('mentoring_logs').doc(mentoringSessionId).delete() : Promise.resolve(),
     serviceProjectId ? db.collection('mentoring_engagement_locks').doc(`${serviceProjectId}_${companyId}_${expertUid}`).delete() : Promise.resolve(),
     deleteAuditLogs(),
   ])
