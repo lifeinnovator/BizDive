@@ -24,7 +24,10 @@ export default async function DiagnosisPage() {
         }
 
         // 3. Fetch Questions
-        const questions = await getDiagnosisQuestions(profile)
+        const questions = await getDiagnosisQuestions({
+            stage: typeof profile.stage === 'string' ? profile.stage : null,
+            industry: typeof profile.industry === 'string' ? profile.industry : null,
+        })
 
         return (
             <DiagnosisWrapper

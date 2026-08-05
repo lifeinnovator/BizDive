@@ -19,7 +19,7 @@ export interface Database {
                     industry: 'I' | 'H' | 'L' | 'CT' | null
                     user_name: string | null
                     user_title: string | null
-                    role: 'super_admin' | 'group_admin' | 'user'
+                    role: 'super_admin' | 'service_operator' | 'group_admin' | 'program_operator' | 'user'
                     group_id: string | null
                     project_id: string | null
                     created_at: string
@@ -33,7 +33,7 @@ export interface Database {
                     industry?: 'I' | 'H' | 'L' | 'CT' | null
                     user_name?: string | null
                     user_title?: string | null
-                    role?: 'super_admin' | 'group_admin' | 'user'
+                    role?: 'super_admin' | 'service_operator' | 'group_admin' | 'program_operator' | 'user'
                     group_id?: string | null
                     project_id?: string | null
                     created_at?: string
@@ -47,7 +47,7 @@ export interface Database {
                     industry?: 'I' | 'H' | 'L' | 'CT' | null
                     user_name?: string | null
                     user_title?: string | null
-                    role?: 'super_admin' | 'group_admin' | 'user'
+                    role?: 'super_admin' | 'service_operator' | 'group_admin' | 'program_operator' | 'user'
                     group_id?: string | null
                     project_id?: string | null
                     created_at?: string
