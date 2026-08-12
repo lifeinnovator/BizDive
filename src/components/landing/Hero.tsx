@@ -19,13 +19,13 @@ const Hero = () => {
                 <div className="flex items-center justify-center gap-2 mb-6">
                     <span className="bg-indigo-50 text-indigo-600 px-4 py-1.5 rounded-full text-sm font-bold tracking-tight border border-indigo-100 flex items-center gap-2 shadow-sm">
                         <Image src="/favicon.png" alt="" width={16} height={16} className="opacity-80" />
-                        BizDive · 기업의 성장 여정
+                        BizDive - 7D 기업경영 심층자가진단
                     </span>
                 </div>
                 <h1 className="text-[36px] sm:text-[48px] lg:text-[76px] font-extrabold tracking-tighter text-indigo-950 leading-[1.2] sm:leading-[1.1] mb-6 sm:mb-8 break-keep">
-                    진단에서 끝나지 않는,<br />
-                    우리 기업의<br />
-                    다음 성장 행동
+                    직관을 넘어, <br />
+                    데이터로 증명하는 <br />
+                    비즈니스 경쟁력
                 </h1>
                 <p className="text-[17px] sm:text-xl text-slate-600 font-medium tracking-tight mb-4 max-w-3xl mx-auto leading-relaxed break-keep">
                     현재 상태를 7가지 핵심 영역으로 진단하고,<br />
