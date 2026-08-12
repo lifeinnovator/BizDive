@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import Image from 'next/image';
 
 const NavigationBar = () => {
     const [scrolled, setScrolled] = useState(false);
@@ -34,9 +35,11 @@ const NavigationBar = () => {
         >
             <div className="container mx-auto px-2 md:px-4 flex justify-between items-center max-w-7xl">
                 <Link href="/" className="flex items-center gap-2">
-                    <img
+                    <Image
                         src="/BizDive_Logo_Confirm.png"
                         alt="BizDive"
+                        width={180}
+                        height={48}
                         className="h-10 sm:h-12 w-auto"
                     />
                 </Link>
@@ -52,13 +55,14 @@ const NavigationBar = () => {
                                 </a>
                             )}
                             {userRole === 'group_admin' && (
-                                <a href="https://bizdive.kr/admin/demo" className="inline-flex min-h-11 items-center text-[13px] sm:text-[15px] font-bold text-indigo-600 hover:text-indigo-900 transition-colors">
+                                <a href="https://admin.bizdive.kr" className="inline-flex min-h-11 items-center text-[13px] sm:text-[15px] font-bold text-indigo-600 hover:text-indigo-900 transition-colors">
                                     지원기관 관리
                                 </a>
                             )}
                         </>
                     ) : (
                         <>
+                            <a href="https://admin.bizdive.kr" className="hidden min-h-11 items-center text-[13px] font-bold text-slate-500 hover:text-indigo-900 md:inline-flex sm:text-[15px]">기관·사업 운영</a>
                             <Link href="/login" className="inline-flex min-h-11 items-center text-[13px] sm:text-[15px] font-bold text-slate-500 hover:text-indigo-900 transition-colors">
                                 로그인
                             </Link>

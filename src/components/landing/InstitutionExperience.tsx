@@ -23,7 +23,7 @@ const InstitutionExperience = () => {
                                 For Institutions
                             </span>
                             <span className="text-[14px] sm:text-base font-bold text-slate-400">
-                                데이터 기반의 스마트한 지원 체계가 필요한 지원기관
+                                신청부터 성과보고까지 연결된 운영 체계가 필요한 지원기관
                             </span>
                         </div>
                     </div>
@@ -38,13 +38,10 @@ const InstitutionExperience = () => {
                     >
                         <div className="flex items-start gap-4 mb-4">
                             <span className="text-emerald-500 font-mono text-xl font-bold mt-1">01</span>
-                            <h2 className="text-4xl md:text-5xl font-bold tracking-tighter leading-tight text-white break-keep">지원사업 효과의<br />정량적 지표화.</h2>
+                            <h2 className="text-4xl md:text-5xl font-bold tracking-tighter leading-tight text-white break-keep">신청과 참여를<br />명확하게 구분.</h2>
                         </div>
                         <p className="text-slate-400 font-medium text-lg leading-relaxed max-w-md pl-9 break-keep">
-                            지원사업 전후의 기업 경영 상황 변화를 <br className="sm:hidden" />
-                            객관적인 점수로 비교 분석합니다. <br className="sm:hidden" />
-                            이를 통해 지원사업의 실제 성과를 <br className="sm:hidden" />
-                            정량적 지표로 명확하게 제시할 수 있습니다.
+                            신청기업을 검토하고 승인된 기업을 참여기업으로 전환합니다. 신청 단계 진단부터 이후 사업 단계까지 같은 기업의 이력을 연결합니다.
                         </p>
                     </motion.div>
 
@@ -58,10 +55,10 @@ const InstitutionExperience = () => {
                     >
                         <div className="flex items-start gap-4 mb-4">
                             <span className="text-sky-400 font-mono text-xl font-bold mt-1">02</span>
-                            <h2 className="text-4xl md:text-5xl font-bold tracking-tighter leading-tight text-white">단계별 진단과<br />맞춤형 보완 가이드.</h2>
+                            <h2 className="text-4xl md:text-5xl font-bold tracking-tighter leading-tight text-white">진단에서 멘토링까지<br />하나의 지원 흐름.</h2>
                         </div>
                         <p className="text-slate-400 font-medium text-lg leading-relaxed max-w-md pl-9">
-                            차수별 연속 진단을 통해 개별 기업의 핵심 경쟁 요인과 부족한 부분을 도출하고, 이를 즉각 보완할 수 있는 실질적인 가이드를 제공합니다.
+                            자가진단과 진단위원 결과를 비교하고 필요한 분야의 멘토풀, 기업 선택, 일정과 멘토링 일지를 하나의 흐름으로 관리합니다.
                         </p>
                     </motion.div>
 
@@ -75,11 +72,12 @@ const InstitutionExperience = () => {
                     >
                         <div className="flex items-start gap-4 mb-4">
                             <span className="text-indigo-400 font-mono text-xl font-bold mt-1">03</span>
-                            <h2 className="text-4xl md:text-5xl font-bold tracking-tighter leading-tight text-white">지원사업별 <br />간편한 통합 관리.</h2>
+                            <h2 className="text-4xl md:text-5xl font-bold tracking-tighter leading-tight text-white">사업 효과를 보여주는<br />성과와 보고.</h2>
                         </div>
                         <p className="text-slate-400 font-medium text-lg leading-relaxed max-w-md pl-9">
-                            다수의 지원사업과 참가 기업들의 진단 및 실행 현황을 하나의 대시보드에서 쉽게 관리하세요. 수백 개의 수합된 엑셀 파일은 더 이상 필요 없습니다.
+                            참여율, 진단 점수 변화, 멘토링 실행 이력을 성과지표로 관리하고 최종 사업 보고에 활용할 수 있는 보고서 초안을 만듭니다.
                         </p>
+                        <a href="https://admin.bizdive.kr" className="ml-9 mt-6 inline-flex rounded-lg border border-indigo-400/40 px-4 py-2.5 text-sm font-bold text-indigo-200 transition hover:bg-indigo-500/10 hover:text-white pointer-events-auto">기관용 운영 솔루션 보기 →</a>
                     </motion.div>
                 </div>
 
