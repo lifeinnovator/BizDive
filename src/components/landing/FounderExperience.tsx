@@ -13,25 +13,23 @@ const FounderExperience = () => {
                             For Founders
                         </span>
                         <span className="text-[14px] sm:text-base font-bold text-slate-500">
-                            비즈니스의 입체적 진단이 필요한 창업가
+                            진단 결과를 실제 성장 행동으로 연결하려는 기업
                         </span>
                     </div>
                     <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tighter text-indigo-950 mb-6 sm:mb-8 leading-tight break-keep">
-                        아이디어의 현주소, <br />
-                        가장 빠르고 냉정하게.
+                        현재를 진단하고,<br />
+                        다음 지원을 선택합니다.
                     </h2>
                     <p className="text-lg md:text-xl text-slate-500 font-medium leading-relaxed max-w-2xl break-keep">
-                        복잡한 텍스트 심사나 피칭 전에, <br className="sm:hidden" />
-                        BizDive의 입체적 진단 모델을 통해 <br className="sm:hidden" />
-                        시장에서의 실제 생존 가능성을 테스트하세요.
+                        한 번의 점수보다 단계별 변화가 중요합니다. 자가진단과 전문가 의견을 비교하고, 부족한 분야에 필요한 멘토링을 이어가세요.
                     </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {[
-                        { step: '01', title: '7D 핵심 지표 해부', desc: '시장성, 경쟁력, 수익성 등 7가지 다각도 관점에서 비즈니스 모델을 파편부터 결합까지 검증합니다.' },
-                        { step: '02', title: '등급 산출 알고리즘', desc: '직관적이고 치밀하게 짜인 로직을 바탕으로 현재 수준을 정확하게 계산된 점수와 등급으로 반환합니다.' },
-                        { step: '03', title: '누적 성장 궤적 관리', desc: '진단 결과를 축적하여 기업의 성장 단계별 변화를 한눈에 파악하고, 다음 단계 도약을 위한 지속적인 경영 제언을 제공합니다.' },
+                        { step: '01', title: '우리 기업 자가진단', desc: '시장성, 경쟁력, 수익성 등 7가지 관점에서 현재 상태와 보완이 필요한 영역을 확인합니다.' },
+                        { step: '02', title: '전문가 관점과 비교', desc: '같은 기준으로 진행한 진단위원 결과와 자가진단의 차이를 비교해 인식의 간극을 발견합니다.' },
+                        { step: '03', title: '멘토링과 변화 기록', desc: '필요 분야의 멘토를 선택하고, 사업 단계별 진단과 지원 이력을 통해 변화 과정을 확인합니다.' },
                     ].map((item, i) => (
                         <motion.div
                             key={i}

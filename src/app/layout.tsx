@@ -7,10 +7,10 @@ export const metadata: Metadata = {
     process.env.NEXT_PUBLIC_SITE_URL || 'https://bizdive.vercel.app'
   ),
   title: {
-    default: "비즈다이브(BizDive) | 7D 기업경영 정밀자가진단",
+    default: "비즈다이브(BizDive) | 진단에서 다음 성장 행동까지",
     template: "%s | BizDive"
   },
-  description: "비즈다이브(BizDive)는 7차원(7D) 정밀 진단 모델을 통해 기업의 현재 상태를 입체 분석하고, 성장을 위한 구체적인 액션 아이템을 제안하는 경영 진단 솔루션입니다.",
+  description: "비즈다이브는 7D 기업진단, 전문가 비교, 멘토링과 단계별 변화 관리를 통해 기업의 다음 성장 행동을 연결합니다.",
   keywords: ["경영진단", "스타트업지원", "성과관리", "비즈니스모델", "데이터기반성장", "SEO", "GEO", "창업컨설팅"],
   icons: {
     icon: [
@@ -21,8 +21,8 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
-    title: "BizDive - 7D 기업경영 심층자가진단",
-    description: "데이터로 증명하는 비즈니스 경쟁력. 7가지 핵심 지표로 기업의 성장을 정밀 분석하세요.",
+    title: "BizDive - 진단에서 다음 성장 행동까지",
+    description: "현재 상태를 진단하고 전문가 의견, 멘토링과 단계별 변화로 다음 성장을 이어가세요.",
     type: "website",
     locale: "ko_KR",
     siteName: "비즈다이브",
@@ -63,7 +63,7 @@ export default function RootLayout({
               "name": "BizDive",
               "operatingSystem": "All",
               "applicationCategory": "BusinessApplication",
-              "description": "7D 기업경영 정밀자가진단 시스템. 데이터 기반의 비즈니스 경쟁력 분석 도구입니다."
+              "description": "7D 기업진단과 전문가 비교, 멘토링 및 단계별 성장 관리를 연결하는 기업 지원 서비스입니다."
             })
           }}
         />
