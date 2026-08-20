@@ -1,8 +1,3 @@
-"use client";
-
-import React from 'react';
-import { motion } from 'framer-motion';
-
 const FounderExperience = () => {
     return (
         <section className="py-20 sm:py-32 bg-white px-6 md:px-12 border-b border-indigo-50">
@@ -31,18 +26,14 @@ const FounderExperience = () => {
                         { step: '02', title: '전문가 관점과 비교', desc: '같은 기준으로 진행한 진단위원 결과와 자가진단의 차이를 비교해 인식의 간극을 발견합니다.' },
                         { step: '03', title: '멘토링과 변화 기록', desc: '필요 분야의 멘토를 선택하고, 사업 단계별 진단과 지원 이력을 통해 변화 과정을 확인합니다.' },
                     ].map((item, i) => (
-                        <motion.div
+                        <div
                             key={i}
-                            initial={{ opacity: 0, y: 40 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true, margin: "-100px" }}
-                            transition={{ duration: 0.8, delay: i * 0.15, ease: [0.16, 1, 0.3, 1] }}
                             className="bg-indigo-50/30 p-10 sm:p-12 border border-indigo-100/50 transition-colors hover:bg-white hover:shadow-xl hover:border-transparent group"
                         >
                             <span className="text-[40px] font-light text-indigo-200 mb-8 block font-mono group-hover:text-indigo-600 transition-colors">{item.step}</span>
                             <h4 className="text-[22px] font-extrabold tracking-tight text-indigo-950 mb-4">{item.title}</h4>
                             <p className="text-[16px] text-slate-600 font-medium leading-relaxed">{item.desc}</p>
-                        </motion.div>
+                        </div>
                     ))}
                 </div>
             </div>

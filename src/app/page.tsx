@@ -1,5 +1,3 @@
-import { createClient } from '@/lib/supabase-server';
-import { redirect } from 'next/navigation';
 import { faqs } from '@/data/faqs';
 
 // Import Landing Components
@@ -12,15 +10,7 @@ import BannerSection from '@/components/landing/BannerSection';
 import FAQSection from '@/components/landing/FAQSection';
 import Footer from '@/components/landing/Footer';
 
-export default async function Home() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  // If already logged in, redirect them immediately to dashboard
-  if (user) {
-    redirect('/dashboard');
-  }
-
+export default function Home() {
   // FAQ Schema for SEO/GEO
   const faqSchema = {
     "@context": "https://schema.org",
