@@ -1,6 +1,3 @@
-"use client";
-
-import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -35,9 +32,9 @@ const Footer = () => {
                     <div className="flex flex-col gap-4">
                         <h4 className="text-slate-900 font-bold text-sm">서비스</h4>
                         <div className="flex flex-col gap-3 text-[13px] text-slate-500 font-medium">
-                            <Link href="/onboarding" className="hover:text-indigo-600 transition-colors">무료 진단</Link>
+                            <Link href="/onboarding" prefetch={false} className="hover:text-indigo-600 transition-colors">무료 진단</Link>
                             <Link href="/about" className="hover:text-indigo-600 transition-colors">서비스 소개</Link>
-                            <Link href="/consultation/apply" className="hover:text-indigo-600 transition-colors">전문가 상담</Link>
+                            <Link href="/consultation/apply" prefetch={false} className="hover:text-indigo-600 transition-colors">전문가 상담</Link>
                         </div>
                     </div>
                     
@@ -52,7 +49,7 @@ const Footer = () => {
                         <h4 className="text-slate-900 font-bold text-sm">기관·사업 운영</h4>
                         <div className="flex flex-col gap-3 text-[13px] text-slate-500 font-medium">
                             <a href="https://admin.bizdive.kr" className="hover:text-indigo-600 transition-colors">운영 솔루션 소개</a>
-                            <a href="mailto:admin@bizdive.kr?subject=BizDive 기관 도입 문의" className="hover:text-indigo-600 transition-colors">기관 도입 문의</a>
+                            <a href="https://admin.bizdive.kr/institution-inquiry" className="hover:text-indigo-600 transition-colors">기관 도입 문의</a>
                         </div>
                     </div>
                 </div>

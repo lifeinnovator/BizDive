@@ -1,7 +1,3 @@
-"use client";
-
-import React from 'react';
-import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Rocket, Building2 } from 'lucide-react';
@@ -21,11 +17,7 @@ const UserPathSelection = () => {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                     {/* Founder Path */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, margin: "-100px" }}
-                        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                    <div
                         className="bg-white border border-slate-200 p-10 sm:p-14 shadow-sm hover:shadow-xl hover:border-indigo-200 transition-all group relative overflow-hidden flex flex-col justify-between"
                     >
                         <div className="absolute top-0 left-0 w-full h-1 bg-indigo-600 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out"></div>
@@ -35,13 +27,13 @@ const UserPathSelection = () => {
                             </div>
                             <h3 className="text-2xl font-bold text-indigo-950 mb-4 tracking-tight">창업가 / 예비 창업자</h3>
                             <p className="text-slate-500 mb-8 font-medium leading-relaxed text-[15px] sm:text-base break-keep">
-                                "성장의 흔적, 데이터로 관리하세요."<br />
+                                “성장의 흔적, 데이터로 관리하세요.”<br />
                                 일회성 진단에 그치지 않고, 누적된 데이터를 통해 <br className="sm:hidden" />
                                 기업의 성장 단계별 궤적과 핵심 경쟁력을 <br className="sm:hidden" />
                                 지속적으로 관리하고 향상시키세요.
                             </p>
                         </div>
-                        <Link href="/onboarding" className="w-full">
+                        <Link href="/onboarding" prefetch={false} className="w-full">
                             <Button className="w-full mt-6 bg-indigo-900 hover:bg-indigo-800 text-white font-bold h-12 rounded-none transition-colors border border-indigo-900 group-hover:border-indigo-800">
                                 7D 기업경영 심층자가진단 시작
                             </Button>
@@ -49,14 +41,10 @@ const UserPathSelection = () => {
                         <p className="text-[12px] text-slate-400 mt-4 font-medium text-left leading-relaxed break-keep">
                             * 잠시의 집중과 진솔한 답변으로 기업의 현재를 정확하게 진단해 보세요.
                         </p>
-                    </motion.div>
+                    </div>
 
                     {/* Institution Path */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, margin: "-100px" }}
-                        transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+                    <div
                         className="bg-white border border-slate-200 p-10 sm:p-14 shadow-sm hover:shadow-xl hover:border-emerald-200 transition-all group relative overflow-hidden flex flex-col justify-between"
                     >
                         <div className="absolute top-0 left-0 w-full h-1 bg-emerald-500 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out"></div>
@@ -66,7 +54,7 @@ const UserPathSelection = () => {
                             </div>
                             <h3 className="text-2xl font-bold text-slate-900 mb-4 tracking-tight">지원기관 / 지원사업 담당자</h3>
                             <p className="text-slate-500 mb-8 font-medium leading-relaxed text-[15px] sm:text-base break-keep">
-                                "지원사업 성과관리의 새로운 표준."<br />
+                                “지원사업 성과관리의 새로운 표준.”<br />
                                 지원사업 과제별 맞춤형 정량 지표 산출부터 <br className="sm:hidden" />
                                 참여 기업의 성장 데이터 추적까지 통합 관리하세요. <br className="sm:hidden" />
                                 <span className="text-indigo-600 font-bold">(※ 지원사업/과제당 과금 모델로 운영)</span>
@@ -80,7 +68,7 @@ const UserPathSelection = () => {
                         <p className="text-[12px] text-slate-400 mt-3 font-medium">
                             * PC 환경에서의 작업에 최적화되어 있습니다.
                         </p>
-                    </motion.div>
+                    </div>
                 </div>
             </div>
         </section>

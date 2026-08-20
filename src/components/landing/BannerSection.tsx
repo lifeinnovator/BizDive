@@ -1,6 +1,3 @@
-"use client";
-
-import React from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
@@ -17,7 +14,7 @@ const BannerSection = () => {
                         1:1 맞춤 솔루션을 제안해 드립니다. <br className="sm:hidden" />
                         <span className="font-bold text-emerald-400">(베타 기간 무료)</span>
                     </p>
-                    <Link href="/consultation/apply">
+                    <Link href="/consultation/apply" prefetch={false}>
                         <Button
                             className="font-bold text-indigo-900 bg-white hover:bg-slate-100 px-8 h-14 text-[16px] rounded-none shadow-sm w-full sm:w-auto"
                         >
