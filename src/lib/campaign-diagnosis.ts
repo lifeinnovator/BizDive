@@ -10,6 +10,9 @@ export type CampaignQuestion = {
   caption: string | null
   score_weight: number
   display_order: number
+  section_title: string | null
+  max_score: number
+  rubrics: Array<{ score: number; description: string }>
 }
 
 export type CampaignDiagnosisContext = {
@@ -17,6 +20,7 @@ export type CampaignDiagnosisContext = {
   campaignId: string
   projectId: string
   campaignName: string
+  roundTitle: string | null
   assessmentType: 'self' | 'expert'
   templateId: string
   templateVersionId: string
@@ -27,9 +31,10 @@ export type CampaignDiagnosisContext = {
   stageId: string | null
   round: number
   questions: CampaignQuestion[]
+  scoringType: 'weighted_boolean_v1' | 'rubric_scale_v1'
 }
 
-type ScoringModel = {
+type BooleanScoringModel = {
   type: 'weighted_boolean_v1'
   normalization: 'percentage'
   true_value: number
@@ -37,17 +42,28 @@ type ScoringModel = {
   dimension_weights: Record<string, number>
 }
 
+type RubricScoringModel = {
+  type: 'rubric_scale_v1'
+  normalization: 'percentage'
+  section_weights: Record<string, number>
+}
+
+type ScoringModel = BooleanScoringModel | RubricScoringModel
+
 export type CampaignScore = {
   totalScore: number
   dimensionScores: Record<string, number>
   dimensionEarnedScores: Record<string, number>
   dimensionMaxScores: Record<string, number>
-  normalizedResponses: Record<string, boolean>
+  normalizedResponses: Record<string, boolean | number>
 }
 
 function validScoringModel(value: unknown): value is ScoringModel {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false
   const model = value as Record<string, unknown>
+  if (model.type === 'rubric_scale_v1') {
+    return model.normalization === 'percentage' && !!model.section_weights && typeof model.section_weights === 'object' && !Array.isArray(model.section_weights)
+  }
   return model.type === 'weighted_boolean_v1'
     && model.normalization === 'percentage'
     && typeof model.true_value === 'number'
@@ -73,6 +89,15 @@ export function parseCampaignQuestions(value: unknown): CampaignQuestion[] {
       caption: null,
       score_weight: typeof question.score_weight === 'number' && question.score_weight > 0 ? question.score_weight : 1,
       display_order: typeof question.display_order === 'number' ? question.display_order : index + 1,
+      section_title: typeof question.section_title === 'string' ? question.section_title : null,
+      max_score: typeof question.max_score === 'number' && question.max_score > 0 ? question.max_score : 1,
+      rubrics: Array.isArray(question.rubrics) ? question.rubrics.flatMap((item) => {
+        if (!item || typeof item !== 'object' || Array.isArray(item)) return []
+        const rubric = item as Record<string, unknown>
+        return typeof rubric.score === 'number' && typeof rubric.description === 'string'
+          ? [{ score: rubric.score, description: rubric.description }]
+          : []
+      }).sort((a, b) => b.score - a.score) : [],
     }]
   }).sort((a, b) => a.display_order - b.display_order)
 }
@@ -81,11 +106,19 @@ export function scoreCampaignDiagnosis(questionsValue: unknown, scoringModelValu
   const questions = parseCampaignQuestions(questionsValue)
   if (!questions.length || !validScoringModel(scoringModelValue) || !responsesValue || typeof responsesValue !== 'object' || Array.isArray(responsesValue)) return null
   const supplied = responsesValue as Record<string, unknown>
-  const normalizedResponses: Record<string, boolean> = {}
+  const normalizedResponses: Record<string, boolean | number> = {}
   const dimensionEarnedScores: Record<string, number> = {}
   const dimensionMaxScores: Record<string, number> = {}
 
   for (const question of questions) {
+    if (scoringModelValue.type === 'rubric_scale_v1') {
+      const selected = supplied[question.id]
+      if (typeof selected !== 'number' || !question.rubrics.some((rubric) => rubric.score === selected)) return null
+      normalizedResponses[question.id] = selected
+      dimensionEarnedScores[question.dimension] = (dimensionEarnedScores[question.dimension] || 0) + selected
+      dimensionMaxScores[question.dimension] = (dimensionMaxScores[question.dimension] || 0) + question.max_score
+      continue
+    }
     const checked = supplied[question.id] === true
     normalizedResponses[question.id] = checked
     const value = checked ? scoringModelValue.true_value : scoringModelValue.false_value
@@ -102,7 +135,9 @@ export function scoreCampaignDiagnosis(questionsValue: unknown, scoringModelValu
   let weightedTotal = 0
   let weightTotal = 0
   for (const [dimension, percentage] of Object.entries(dimensionScores)) {
-    const configuredWeight = scoringModelValue.dimension_weights[dimension]
+    const configuredWeight = scoringModelValue.type === 'rubric_scale_v1'
+      ? scoringModelValue.section_weights[dimension]
+      : scoringModelValue.dimension_weights[dimension]
     const weight = typeof configuredWeight === 'number' && configuredWeight >= 0 ? configuredWeight : 1
     weightedTotal += percentage * weight
     weightTotal += weight
@@ -116,7 +151,67 @@ export function scoreCampaignDiagnosis(questionsValue: unknown, scoringModelValu
   }
 }
 
-export async function getCampaignDiagnosisContext(userId: string, projectId: string, requestedRound: number): Promise<CampaignDiagnosisContext | null> {
+export type EnterpriseDiagnosisItem = {
+  assignmentId: string
+  projectId: string
+  projectName: string
+  diagnosisTitle: string
+  round: number
+  roundTitle: string | null
+  status: 'pending' | 'submitted'
+  available: boolean
+  closesAt: string | null
+  recordId: string | null
+  totalScore: number | null
+}
+
+type FirestoreEntity = FirebaseFirestore.DocumentData
+
+export async function listEnterpriseDiagnoses(userId: string): Promise<EnterpriseDiagnosisItem[]> {
+  if (!adminDb) return []
+  const memberships = await adminDb.collection('company_memberships').where('user_id', '==', userId).get()
+  const companyIds = [...new Set(memberships.docs.filter((document: FirebaseFirestore.QueryDocumentSnapshot) => document.data().active !== false).map((document: FirebaseFirestore.QueryDocumentSnapshot) => document.data().company_id).filter((value: unknown): value is string => typeof value === 'string'))]
+  if (!companyIds.length) return []
+  const assignmentSnapshots = await Promise.all(companyIds.map((companyId) => adminDb!.collection('diagnosis_assignments').where('company_id', '==', companyId).get()))
+  const assignments = assignmentSnapshots.flatMap((snapshot) => snapshot.docs).filter((document: FirebaseFirestore.QueryDocumentSnapshot) => document.data().assessment_type === 'self')
+  if (!assignments.length) return []
+  const campaignIds = [...new Set(assignments.map((document) => String(document.data().campaign_id)))]
+  const projectIds = [...new Set(assignments.map((document) => String(document.data().project_id)))]
+  const recordIds = [...new Set(assignments.map((document) => document.data().diagnosis_record_id).filter((value: unknown): value is string => typeof value === 'string'))]
+  const [campaigns, projects, records] = await Promise.all([
+    adminDb.getAll(...campaignIds.map((id) => adminDb!.collection('diagnosis_campaigns').doc(id))),
+    adminDb.getAll(...projectIds.map((id) => adminDb!.collection('projects').doc(id))),
+    recordIds.length ? adminDb.getAll(...recordIds.map((id) => adminDb!.collection('diagnosis_records').doc(id))) : [],
+  ])
+  const campaignById = new Map<string, FirestoreEntity>(campaigns.filter((document: FirebaseFirestore.DocumentSnapshot) => document.exists).map((document: FirebaseFirestore.DocumentSnapshot): [string, FirestoreEntity] => [document.id, document.data()!]))
+  const projectById = new Map<string, FirestoreEntity>(projects.filter((document: FirebaseFirestore.DocumentSnapshot) => document.exists).map((document: FirebaseFirestore.DocumentSnapshot): [string, FirestoreEntity] => [document.id, document.data()!]))
+  const recordById = new Map<string, FirestoreEntity>(records.filter((document: FirebaseFirestore.DocumentSnapshot) => document.exists).map((document: FirebaseFirestore.DocumentSnapshot): [string, FirestoreEntity] => [document.id, document.data()!]))
+  const now = Date.now()
+  return assignments.flatMap((document): EnterpriseDiagnosisItem[] => {
+    const assignment = document.data()
+    const campaign = campaignById.get(String(assignment.campaign_id))
+    const project = projectById.get(String(assignment.project_id))
+    if (!campaign || !project) return []
+    const recordId = typeof assignment.diagnosis_record_id === 'string' ? assignment.diagnosis_record_id : null
+    const record = recordId ? recordById.get(recordId) : null
+    const available = campaign.status === 'open' && !(campaign.opens_at?.toMillis?.() > now) && !(campaign.closes_at?.toMillis?.() < now)
+    return [{
+      assignmentId: document.id,
+      projectId: String(assignment.project_id),
+      projectName: String(project.name || assignment.project_id),
+      diagnosisTitle: String(campaign.diagnosis_title || campaign.name || `${String(project.name || '')} 기업진단`),
+      round: Number(campaign.round || 1),
+      roundTitle: typeof campaign.round_title === 'string' ? campaign.round_title : null,
+      status: assignment.status === 'submitted' ? 'submitted' : 'pending',
+      available,
+      closesAt: campaign.closes_at?.toDate?.().toISOString?.() || null,
+      recordId,
+      totalScore: typeof record?.total_score === 'number' ? record.total_score : null,
+    }]
+  }).sort((a, b) => Number(a.status === 'submitted') - Number(b.status === 'submitted') || b.round - a.round)
+}
+
+export async function getCampaignDiagnosisContext(userId: string, projectId: string, requestedRound: number, requestedAssignmentId?: string | null): Promise<CampaignDiagnosisContext | null> {
   if (!adminDb) return null
   const memberships = await adminDb.collection('company_memberships').where('user_id', '==', userId).get()
   const companyIds = new Set(memberships.docs.filter((doc: FirebaseFirestore.QueryDocumentSnapshot) => doc.data().active !== false).map((doc: FirebaseFirestore.QueryDocumentSnapshot) => doc.data().company_id).filter(Boolean))
@@ -125,7 +220,7 @@ export async function getCampaignDiagnosisContext(userId: string, projectId: str
   const assignments = await adminDb.collection('diagnosis_assignments').where('project_id', '==', projectId).get()
   const candidates = assignments.docs.filter((doc: FirebaseFirestore.QueryDocumentSnapshot) => {
     const data = doc.data()
-    return companyIds.has(data.company_id) && data.assessment_type === 'self' && data.status === 'pending'
+    return companyIds.has(data.company_id) && data.assessment_type === 'self' && data.status === 'pending' && (!requestedAssignmentId || doc.id === requestedAssignmentId)
   })
   for (const assignment of candidates) {
     const data = assignment.data()
@@ -145,7 +240,8 @@ export async function getCampaignDiagnosisContext(userId: string, projectId: str
       assignmentId: assignment.id,
       campaignId: data.campaign_id,
       projectId,
-      campaignName: typeof campaignData.name === 'string' ? campaignData.name : '프로젝트 진단',
+      campaignName: typeof campaignData.diagnosis_title === 'string' ? campaignData.diagnosis_title : typeof campaignData.name === 'string' ? campaignData.name : '기업진단',
+      roundTitle: typeof campaignData.round_title === 'string' ? campaignData.round_title : null,
       assessmentType: 'self',
       templateId: data.template_id,
       templateVersionId: data.template_version_id,
@@ -156,6 +252,7 @@ export async function getCampaignDiagnosisContext(userId: string, projectId: str
       stageId: data.stage_id ?? null,
       round: Number(campaignData.round),
       questions,
+      scoringType: version.data()?.scoring_model?.type === 'rubric_scale_v1' ? 'rubric_scale_v1' : 'weighted_boolean_v1',
     }
   }
   return null
@@ -182,7 +279,8 @@ export async function getExpertDiagnosisContext(userId: string, assignmentId: st
     assignmentId,
     campaignId: data.campaign_id,
     projectId: data.project_id,
-    campaignName: typeof campaignData.name === 'string' ? campaignData.name : '진단위원 진단',
+    campaignName: typeof campaignData.diagnosis_title === 'string' ? campaignData.diagnosis_title : typeof campaignData.name === 'string' ? campaignData.name : '진단위원 진단',
+    roundTitle: typeof campaignData.round_title === 'string' ? campaignData.round_title : null,
     assessmentType: 'expert',
     templateId: data.template_id,
     templateVersionId: data.template_version_id,
@@ -193,5 +291,6 @@ export async function getExpertDiagnosisContext(userId: string, assignmentId: st
     stageId: data.stage_id ?? null,
     round: Number(campaignData.round),
     questions,
+    scoringType: version.data()?.scoring_model?.type === 'rubric_scale_v1' ? 'rubric_scale_v1' : 'weighted_boolean_v1',
   }
 }

@@ -43,7 +43,7 @@ export default function DiagnosisForm({
     campaignContext = null
 }: DiagnosisFormProps) {
     const router = useRouter()
-    const [answers, setAnswers] = useState<Record<string, boolean>>({})
+    const [answers, setAnswers] = useState<Record<string, boolean | number>>({})
     const [currentStep, setCurrentStep] = useState(0)
     const [draftReady, setDraftReady] = useState(false)
 
@@ -55,15 +55,22 @@ export default function DiagnosisForm({
             groups[q.dimension].push(q)
         })
 
-        // Ensure order D1..D7
-        const sectionOrder = ['D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7']
-        return sectionOrder.map(key => ({
-            id: key,
-            title: getDimensionTitle(key),
-            desc: getDimensionDesc(key),
-            maxScore: groups[key]?.reduce((sum, q) => sum + (q.score_weight || 1), 0) || 0,
-            questions: groups[key] || []
-        })).filter(s => s.questions.length > 0)
+        const sectionOrder = [...new Set(questions.map((question) => question.dimension))].sort((a, b) => {
+            const aNumber = Number(a.replace(/^D/, ''))
+            const bNumber = Number(b.replace(/^D/, ''))
+            return Number.isFinite(aNumber) && Number.isFinite(bNumber) ? aNumber - bNumber : a.localeCompare(b)
+        })
+        return sectionOrder.map(key => {
+            const firstQuestion = groups[key]?.[0]
+            const sectionTitle = firstQuestion && 'section_title' in firstQuestion && typeof firstQuestion.section_title === 'string' ? firstQuestion.section_title : null
+            return {
+                id: key,
+                title: sectionTitle || getDimensionTitle(key),
+                desc: getDimensionDesc(key),
+                maxScore: groups[key]?.reduce((sum, q) => sum + ('max_score' in q && typeof q.max_score === 'number' ? q.max_score : q.score_weight || 1), 0) || 0,
+                questions: groups[key] || []
+            }
+        }).filter(s => s.questions.length > 0)
     }, [questions])
 
     const draftKey = useMemo(
@@ -76,9 +83,7 @@ export default function DiagnosisForm({
             const savedDraft = sessionStorage.getItem(draftKey)
             if (savedDraft) {
                 const parsed = JSON.parse(savedDraft) as { answers?: Record<string, unknown>; currentStep?: number }
-                const restoredAnswers = Object.fromEntries(
-                    Object.entries(parsed.answers || {}).filter((entry): entry is [string, boolean] => typeof entry[1] === 'boolean')
-                )
+                const restoredAnswers = Object.fromEntries(Object.entries(parsed.answers || {}).filter((entry): entry is [string, boolean | number] => typeof entry[1] === 'boolean' || typeof entry[1] === 'number'))
                 setAnswers(restoredAnswers)
                 if (Number.isInteger(parsed.currentStep) && sections.length > 0) {
                     setCurrentStep(Math.min(Math.max(parsed.currentStep || 0, 0), sections.length - 1))
@@ -110,6 +115,16 @@ export default function DiagnosisForm({
             const unitScore = unitScores[sec.id as Dimension] || 1.0
 
             // Map questions to { points, checked } for utility
+            if (campaignContext?.scoringType === 'rubric_scale_v1') {
+                const earned = sec.questions.reduce((sum, question) => sum + (typeof answers[question.id] === 'number' ? Number(answers[question.id]) : 0), 0)
+                const maximum = sec.questions.reduce((sum, question) => sum + ('max_score' in question && typeof question.max_score === 'number' ? question.max_score : 0), 0)
+                calculatedSectionScores[sec.id] = maximum > 0 ? Math.round((earned / maximum) * 1000) / 10 : 0
+                earnedScores[sec.id] = earned
+                maxScores[sec.id] = maximum
+                scoreSum += calculatedSectionScores[sec.id]
+                return
+            }
+
             const items = sec.questions.map((q) => {
                 const questionKey = q.id
                 const checked = answers[questionKey] === true
@@ -130,16 +145,16 @@ export default function DiagnosisForm({
         })
 
         return {
-            totalScore: Math.round(scoreSum * 10) / 10,
+            totalScore: campaignContext?.scoringType === 'rubric_scale_v1' && sections.length ? Math.round((scoreSum / sections.length) * 10) / 10 : Math.round(scoreSum * 10) / 10,
             sectionScores: calculatedSectionScores,
             sectionMaxScores: maxScores
         }
     }, [answers, sections, profile, campaignContext])
 
-    const handleAnswerChange = (questionId: string, checked: boolean) => {
+    const handleAnswerChange = (questionId: string, value: boolean | number) => {
         setAnswers(prev => ({
             ...prev,
-            [questionId]: checked,
+            [questionId]: value,
         }))
     }
 
@@ -158,6 +173,10 @@ export default function DiagnosisForm({
     }
 
     const handleViewReport = async () => {
+        if (campaignContext?.scoringType === 'rubric_scale_v1' && questions.some((question) => typeof answers[question.id] !== 'number')) {
+            alert('모든 문항의 평가 기준을 선택해주세요.')
+            return
+        }
         if (!campaignContext && totalScore === 0) {
             alert('최소 1개 이상의 문항에 응답해주세요.')
             return
@@ -310,7 +329,7 @@ export default function DiagnosisForm({
             <main className="flex-1 max-w-3xl w-full mx-auto px-4 py-8 sm:py-12 pb-32">
                 {campaignContext && (
                     <div className="mb-6 rounded-2xl border border-indigo-100 bg-indigo-50 px-5 py-4">
-                        <p className="text-xs font-bold uppercase tracking-wide text-indigo-600">{campaignContext.assessmentType === 'expert' ? '진단위원 진단' : '프로젝트 자가진단'} · {campaignContext.round}회차</p>
+                        <p className="text-xs font-bold uppercase tracking-wide text-indigo-600">{campaignContext.assessmentType === 'expert' ? '진단위원 진단' : '기업 자가진단'} · {campaignContext.round}차{campaignContext.roundTitle ? ` · ${campaignContext.roundTitle}` : ''}</p>
                         <p className="mt-1 font-semibold text-slate-900">{campaignContext.campaignName}</p>
                     </div>
                 )}
