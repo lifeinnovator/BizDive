@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { Printer, MessageSquare, LogOut, Home } from 'lucide-react'
+import { Printer, MessageSquare, LogOut, Home, ClipboardCheck } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 
@@ -41,6 +41,10 @@ export function ReportHeaderActions() {
 
     return (
         <div className="flex items-center gap-1 sm:gap-2">
+            <Button variant="ghost" size="sm" onClick={() => router.push('/enterprise-diagnosis')} className="px-2 sm:px-3">
+                <ClipboardCheck className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-2" />
+                <span className="hidden sm:inline">기업진단</span>
+            </Button>
             <Button variant="ghost" size="sm" onClick={() => router.push('/')} className="px-2 sm:px-3">
                 <Home className="h-5 w-5 sm:h-4 sm:w-4 sm:mr-2" />
                 <span className="hidden sm:inline">홈으로</span>

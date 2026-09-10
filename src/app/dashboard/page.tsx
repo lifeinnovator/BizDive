@@ -7,7 +7,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ReportHeaderActions } from '@/components/report/ReportActions'
 import ConsultantBanner from '@/components/report/ConsultantBanner'
-import { Plus, History, Settings, Layers } from 'lucide-react'
+import { Plus, History, Settings, Layers, ClipboardCheck } from 'lucide-react'
 import DiagnosisHistoryList from '@/components/dashboard/DiagnosisHistoryList'
 import { STAGE_LABELS, INDUSTRY_LABELS } from '@/data/feedback'
 
@@ -79,10 +79,16 @@ export default async function DashboardPage() {
                             </div>
                         )}
                         <div className="flex flex-wrap gap-3">
-                            <Link href="/diagnosis">
+                            <Link href="/enterprise-diagnosis">
                                 <Button className="h-10 px-5 text-sm bg-white text-indigo-600 hover:bg-indigo-50 font-bold border-none shadow-sm rounded-lg">
+                                    <ClipboardCheck className="mr-1.5 h-4 w-4" />
+                                    기업진단
+                                </Button>
+                            </Link>
+                            <Link href="/diagnosis">
+                                <Button variant="outline" className="h-10 px-5 text-sm bg-transparent text-white border-white/30 hover:bg-white/10 hover:text-white rounded-lg">
                                     <Plus className="mr-1.5 h-4 w-4" />
-                                    새 진단 시작하기
+                                    기본 자가진단
                                 </Button>
                             </Link>
                             <Link href="/onboarding">

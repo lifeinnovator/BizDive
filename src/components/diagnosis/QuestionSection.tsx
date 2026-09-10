@@ -9,6 +9,7 @@ interface Question {
     content: string; // Mapped from DB 'content' to UI 'text'
     score_weight: number;
     caption?: string | null;
+    rubrics?: Array<{ score: number; description: string }>;
 }
 
 interface SectionData {
@@ -22,8 +23,8 @@ interface SectionData {
 interface QuestionSectionProps {
     section: SectionData;
     sectionIndex: number;
-    answers: Record<string, boolean>;
-    onAnswerChange: (questionId: string, checked: boolean) => void;
+    answers: Record<string, boolean | number>;
+    onAnswerChange: (questionId: string, value: boolean | number) => void;
 }
 
 const QuestionSection: React.FC<QuestionSectionProps> = ({
@@ -51,7 +52,21 @@ const QuestionSection: React.FC<QuestionSectionProps> = ({
             <div className="space-y-3">
                 {section.questions.map((question) => {
                     const questionId = question.id;
-                    const isChecked = answers[questionId] || false;
+                    const isChecked = answers[questionId] === true;
+
+                    if (question.rubrics?.length) {
+                        return (
+                            <fieldset key={questionId} className="rounded-xl border border-border p-4">
+                                <legend className="px-1 text-sm font-semibold leading-relaxed text-foreground md:text-base">{question.content}</legend>
+                                <div className="mt-3 space-y-2">
+                                    {question.rubrics.map((rubric) => {
+                                        const selected = answers[questionId] === rubric.score
+                                        return <label key={rubric.score} className={cn("flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition", selected ? "border-indigo-400 bg-indigo-50" : "border-slate-200 hover:bg-slate-50")}><input type="radio" name={questionId} value={rubric.score} checked={selected} onChange={() => onAnswerChange(questionId, rubric.score)} className="mt-1" /><span className="text-sm leading-6"><strong className="mr-2 text-indigo-600">{rubric.score}점</strong>{rubric.description}</span></label>
+                                    })}
+                                </div>
+                            </fieldset>
+                        )
+                    }
 
                     return (
                         <label
