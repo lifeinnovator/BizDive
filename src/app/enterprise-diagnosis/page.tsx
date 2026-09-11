@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { Building2, CheckCircle2, ClipboardCheck, Clock3 } from 'lucide-react'
+import { BookOpen, Building2, CheckCircle2, ClipboardCheck, Clock3 } from 'lucide-react'
 import { createClient } from '@/lib/supabase-server'
 import { listEnterpriseDiagnoses } from '@/lib/campaign-diagnosis'
 
@@ -21,7 +21,10 @@ export default async function EnterpriseDiagnosisPage() {
       <div className="mx-auto max-w-5xl space-y-7">
         <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div><p className="text-sm font-bold text-indigo-600">MY BIZDIVE</p><h1 className="mt-1 text-3xl font-black text-slate-900">기업진단</h1><p className="mt-2 text-sm text-slate-500">참여 사업별 진단을 회차별로 진행하고 이전 결과를 확인합니다.</p></div>
-          <Link href="/dashboard" className="text-sm font-semibold text-slate-600 hover:text-indigo-600">대시보드로 돌아가기</Link>
+          <nav className="flex flex-wrap items-center gap-4" aria-label="기업진단 페이지 메뉴">
+            <Link href="/enterprise-diagnosis/guide" className="inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-600 hover:text-indigo-800"><BookOpen className="h-4 w-4" /> 사용 방법</Link>
+            <Link href="/dashboard" className="text-sm font-semibold text-slate-600 hover:text-indigo-600">대시보드로 돌아가기</Link>
+          </nav>
         </header>
 
         <section className="space-y-3">
